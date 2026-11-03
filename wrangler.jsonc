@@ -1,0 +1,11 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "ninja-math-journey",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-10-01",
+  "assets": {"directory":"./public","binding":"ASSETS","run_worker_first":true},
+  "d1_databases": [{"binding":"DB","database_name":"ninja-math","database_id":"00000000-0000-0000-0000-000000000000","migrations_dir":"migrations"}],
+  "r2_buckets": [{"binding":"BACKUPS","bucket_name":"ninja-math-backups"}],
+  "triggers": {"crons":["0 7 * * *"]},
+  "observability": {"enabled":true}
+}
