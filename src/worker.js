@@ -29,6 +29,7 @@ export default {
         if(Number(request.headers.get('Content-Length'))>8192) return json({error:'Entry too large'},413);
         const raw=await request.text(); if(raw.length>8192) return json({error:'Entry too large'},413);
         const input=JSON.parse(raw);
+        if(!input||typeof input!=='object'||Array.isArray(input)) return json({error:'Invalid update'},400);
         if(!idValid(input.requestId)||!idValid(input.entryId)||!['save','remove'].includes(input.operation)||!Number.isInteger(input.revision)) return json({error:'Invalid update'},400);
         const duplicate=await env.DB.prepare('SELECT seq FROM events WHERE request_id=?').bind(input.requestId).first();
         if(duplicate) return json({ok:true});

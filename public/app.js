@@ -107,7 +107,7 @@ $('#entry-status').addEventListener('change',syncFields);
 $('#add-entry').addEventListener('click',()=>openEntry());
 $('#refresh').addEventListener('click',load);
 $('#entry-form').addEventListener('submit',async event=>{
-  event.preventDefault();if(!ready){$('#form-error').textContent='Please reconnect using Refresh progress before saving.';return;}
+  event.preventDefault();if(!ready&&!await load()){$('#form-error').textContent='Still unable to connect. Your form is saved here; try Save again when you are online.';return;}
   const button=event.submitter;button.disabled=true;$('#form-error').textContent='';
   const status=$('#entry-status').value;
   const entry={date:$('#entry-date').value,book:Number($('#entry-book').value),lesson:status==='skipped'?null:Number($('#entry-lesson').value),status,progress:status==='complete'?1:status==='partial'?Number($('#entry-progress').value):0,reason:$('#entry-reason').value,note:$('#entry-note').value};
