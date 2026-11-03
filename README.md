@@ -35,7 +35,7 @@ npm run db:remote
 npm run deploy
 ```
 
-Use the account and resource identifiers already recorded in `wrangler.jsonc`; do not recreate resources on subsequent deploys. Cloudflare Workers serves both the pages and API under one public URL. GitHub stores the source; deployments currently run from this checkout, not automatically from GitHub.
+Use the account and resource identifiers already recorded in `wrangler.jsonc`; do not recreate resources on subsequent deploys. Cloudflare Workers serves both the pages and API under one public URL. Pushes to `main` on GitHub deploy this Worker. `npm run deploy` remains available for a manual deploy from this checkout.
 
 ## Backups and recovery
 
