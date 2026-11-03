@@ -2,6 +2,14 @@
 
 A pastel, mobile-friendly math dashboard built for Ninja. Vanilla HTML/CSS/JavaScript, Cloudflare Worker static assets, D1 for shared progress, and private R2 for recovery snapshots. No login, no analytics, no AI dependency.
 
+## Views and Tweaks
+
+- **Today** is Ninja's screen: today's lesson, the sticker collection, book progress, a quick check for unconfirmed lessons, and the week. No dates or targets appear here.
+- **Journal** lists check-ins. **For Mom** holds projected finishes, targets, and the timeline to 7th grade.
+- Finishing a lesson opens a celebration (flying unicorn, confetti, sticker). It turns calm automatically when the device asks for reduced motion.
+- **Tweaks** (top right) sets color theme, light/dark/auto, text size, and celebration style. Saved per device in `localStorage`; `theme.js` applies it before first paint.
+- Encouraging copy lives in `public/messages.js`. Keep it kind and specific: no streaks, guilt, or invented achievements.
+
 ## Start locally
 
 ```sh

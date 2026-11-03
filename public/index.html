@@ -1,18 +1,216 @@
 <!doctype html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#eee6ff"><meta name="description" content="A little progress, a little magic. Ninja’s personal math journey."><title>Ninja · My Math Journey</title><link rel="icon" href="/ninja.svg" type="image/svg+xml"><link rel="stylesheet" href="/style.css"><script type="module" src="/app.js"></script></head>
-<body><header class="topbar"><a href="#" class="brand"><img src="/ninja.svg" alt="" width="42" height="42"><span>NINJA<small>MY MATH JOURNEY</small></span></a><nav aria-label="Main navigation"><button class="nav active" data-view="dashboard">My journey</button><button class="nav" data-view="history">Check-in journal</button></nav><span class="top-star" aria-hidden="true">✦</span></header>
-<main><div id="connection" role="status">Connecting to your progress…</div>
-<section id="dashboard"><div class="intro"><div><p class="eyebrow" id="today-label">YOUR NEXT CHAPTER STARTS HERE</p><h1>Small steps.<br><span>Big ninja energy.</span> <b class="spark" aria-hidden="true">✧</b></h1><p class="intro-copy">Hey Ninja! A little math today, a little closer to your dreams.</p></div><div class="hero-art" aria-hidden="true"><span class="star-one">✦</span><span class="star-two">✧</span><span class="equation">you + practice = ✨</span><div class="orb"><img src="/ninja.svg" alt="" width="140" height="140"></div><span class="hero-sticker">future 7th grader ♡</span></div></div>
-<div class="dashboard-grid"><div class="main-column"><section class="card checkin-card"><div class="section-top"><span class="pill">✦ YOUR DAILY CHECK-IN</span><span id="today-state" class="muted"></span></div><h2 id="next-heading">Loading your next lesson…</h2><p id="next-subtitle" class="muted">Your progress will appear here.</p><div class="checkin-actions"><button class="action complete" data-status="complete" disabled><span>✓</span><strong>Finished it!</strong><small>Celebrate a lesson</small></button><button class="action partial" data-status="partial" disabled><span>◕</span><strong>Made progress</strong><small>Little steps count</small></button><button class="action skip" data-status="skipped" disabled><span>☁</span><strong>Took a break</strong><small>Tomorrow is a new day</small></button></div><p class="small" id="today-message">One lesson at a time. You’ve got this.</p></section>
-<section class="card journey-card"><div class="section-top"><h2>Your path to grade 7</h2><span class="tiny">TWO BOOKS. ONE BIG ADVENTURE.</span></div><div id="goals"></div><div class="destination"><span>⚑</span><div><strong>Ready for your next chapter</strong><p>Seventh grade · August 2027 <small>(school date TBD)</small></p></div><b aria-hidden="true">✧</b></div></section>
-<section class="card map-card"><div class="section-top"><div><h2>Your lesson collection</h2><p class="small muted">Every square is a step forward. Tap one to update it.</p></div><div class="book-tabs" role="group" aria-label="Lesson book"><button class="selected" data-book="5" aria-pressed="true">Math 5</button><button data-book="6" aria-pressed="false">Math 6</button></div></div><div id="lesson-map" class="lesson-map"></div><div class="legend"><span><i class="done"></i>Finished</span><span><i class="part"></i>In progress</span><span><i></i>Up next</span></div></section></div>
-<aside class="side-column"><section class="card overall-card"><p class="eyebrow">LOOK HOW FAR YOU’VE COME</p><div class="ring-wrap"><svg viewBox="0 0 180 180" aria-hidden="true"><circle class="ring-bg" cx="90" cy="90" r="74"/><circle id="progress-ring" class="ring-fill" cx="90" cy="90" r="74"/></svg><div class="ring-label"><strong id="overall-percent">—</strong><span>of your whole journey</span></div></div><h3>Building your math superpowers</h3><p class="small muted">Math 5 + Math 6 · 240 lessons</p><div class="mini-stats"><div><strong id="finished-count">—</strong><small>lessons finished</small></div><div><strong id="remaining-count">—</strong><small>lesson-equivalents left</small></div></div></section>
-<section class="card week-card"><div class="section-top"><h3>This week</h3><span aria-hidden="true">☀</span></div><div id="week-strip" class="week-strip"></div><p id="week-message" class="small muted"></p></section>
-<section class="card catchup-card" id="catchup"><p class="eyebrow">A LITTLE TIDY-UP</p><h3>Finish your loose ends</h3><p id="catchup-copy" class="muted"></p><button id="catchup-button" class="text-button" disabled>Update catch-up lessons <span>↗</span></button></section>
-<section class="quote-card"><span aria-hidden="true">✶</span><p>You don’t have to be perfect.<br>You just have to keep going.</p><small>A REMINDER FROM YOUR INNER NINJA</small></section></aside></div>
-<details class="projection-info"><summary>How do my dates work?</summary><p>We plan one lesson each Monday–Friday, with no holiday breaks. Weekend work counts too. Math 6 starts on the next weekday after Math 5 finishes. Projections use remaining lesson-equivalents, rounded up to whole study days. After a check-in today, remaining work is planned from the next weekday. An unlogged day stays unlogged; passing days still move the forecast. Target dates are reference points, not deadlines.</p><p>Starting point on November 3, 2026: lessons 1–68 finished; lessons 69–74 need confirmation. No completed work is assumed for those six lessons.</p></details></section>
-<section id="history" hidden><div class="page-heading"><p class="eyebrow">YOUR EFFORT, REMEMBERED</p><h1>Check-in journal</h1><p class="muted">Big wins, tiny steps, and days you needed a breather. They all belong here.</p></div><div class="history-toolbar"><button id="add-entry" class="primary" disabled>+ Add a check-in</button><button id="export" class="secondary" disabled>Download progress</button></div><div id="history-list"></div><p class="small muted">Lessons 1–68 are your starting progress and don’t have individual check-ins. Edits stay in the private backup audit history.</p></section>
-<footer><span>Made for Ninja, one lesson at a time. ♡</span><span>Public dashboard · Keep notes non-personal <button id="refresh">↻ Refresh progress</button></span></footer></main>
-<dialog id="entry-dialog"><form id="entry-form"><div class="dialog-header"><span class="pill">YOUR DAILY CHECK-IN</span><button type="button" class="close" aria-label="Close check-in">×</button></div><h2 id="dialog-title">A little progress, a big win.</h2><p class="muted">Let’s save what you worked on.</p><div class="form-row"><label>Date<input type="date" id="entry-date" required></label><label>Book<select id="entry-book"><option value="5">Math 5</option><option value="6">Math 6</option></select></label></div><label>How did it go?<select id="entry-status"><option value="complete">Finished a lesson ✓</option><option value="partial">Made some progress ◕</option><option value="skipped">Took a break ☁</option></select></label><div class="form-row" id="lesson-fields"><label>Lesson number<input type="number" id="entry-lesson" min="1" max="120" step="1" required></label><label id="amount-field">Total finished so far<select id="entry-progress"><option value="0.25">¼ of the lesson</option><option value="0.5">½ of the lesson</option><option value="0.75">¾ of the lesson</option></select></label></div><p id="partial-hint" class="small muted">Choose the total completed, including earlier work on this lesson.</p><label>Anything get in the way? <span class="optional">Optional</span><select id="entry-reason"><option value="">No reason needed</option><option>Needed help</option><option>Ran out of time</option><option>Needed a rest</option><option>Other plans</option><option>Something else</option></select></label><label>A note for next time <span class="optional">Optional · public</span><textarea id="entry-note" maxlength="500" rows="3" placeholder="e.g. Pick up at practice question 8"></textarea></label><p class="form-error" id="form-error" role="alert"></p><button type="submit" class="primary save-button">Save my check-in ✦</button></form></dialog>
-<dialog id="catchup-dialog"><div class="dialog-header"><span class="pill">CLEAR THE DECKS</span><button type="button" class="close" aria-label="Close catch-up">×</button></div><h2>A fresh start, Ninja.</h2><p class="muted">Select the lessons you have fully finished. For partial work, tap a lesson in your collection instead.</p><div id="catchup-options" class="catchup-options"></div><p id="catchup-error" class="form-error" role="alert"></p><button id="save-catchup" class="primary save-button">Mark selected lessons finished ✓</button></dialog>
-<dialog id="delete-dialog"><h2>Remove this check-in?</h2><p class="muted">Your progress and projected dates will recalculate. A recovery copy stays in the private backups.</p><div class="form-row"><button class="secondary close" type="button">Keep it</button><button id="confirm-delete" class="primary" type="button">Remove check-in</button></div><p id="delete-error" class="form-error" role="alert"></p></dialog><div id="toast" role="status" hidden></div></body></html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#fbf8f4">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="A little progress, a little magic. Ninja’s personal math journey.">
+<title>Ninja · My Math Journey</title>
+<link rel="icon" href="/ninja.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/ninja.svg">
+<script src="/theme.js"></script>
+<link rel="stylesheet" href="/style.css">
+<script type="module" src="/app.js"></script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="#" class="brand" aria-label="Ninja · Math journey home"><img src="/ninja.svg" alt="" width="44" height="44"><span><strong>Ninja</strong><small>Math journey</small></span></a>
+    <nav aria-label="Main navigation">
+      <button class="nav active" data-view="dashboard" aria-current="page">Today</button>
+      <button class="nav" data-view="history">Journal</button>
+      <button class="nav" data-view="planning">For Mom</button>
+    </nav>
+    <button id="tweaks-button" class="tweaks-button" aria-haspopup="dialog" aria-label="Tweaks">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2.5"/><circle cx="10" cy="17" r="2.5"/></svg>
+      <span>Tweaks</span>
+    </button>
+  </div>
+</header>
+
+<main>
+<div id="connection" role="status">Connecting to your progress…</div>
+
+<section id="dashboard">
+  <div class="hello">
+    <div>
+      <p class="date" id="today-label">&nbsp;</p>
+      <h1>Hi Ninja!</h1>
+    </div>
+    <div class="ninja-says">
+      <img src="/ninja.svg" alt="" width="76" height="76">
+      <p class="bubble" id="daily-message">Small steps add up to big things.</p>
+    </div>
+  </div>
+
+  <div class="dashboard-grid">
+    <div class="main-column">
+      <section class="card checkin-card" aria-labelledby="next-heading">
+        <div class="section-top"><span class="label">Today’s lesson</span><span id="today-state" class="today-state"></span></div>
+        <div class="lesson-title"><h2 id="next-heading">Loading…</h2><span id="next-book" class="lesson-book"></span></div>
+        <p id="next-subtitle" class="muted">Your progress will appear here.</p>
+        <div class="checkin-actions">
+          <button class="action complete" data-status="complete" disabled>
+            <span class="action-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+            <strong>I finished it!</strong><small>Add a sticker</small>
+          </button>
+          <button class="action partial" data-status="partial" disabled>
+            <span class="action-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M12 4a8 8 0 1 0 8 8h-8z"/></svg></span>
+            <strong>I did part of it</strong><small>Pick up later</small>
+          </button>
+          <button class="action skip" data-status="skipped" disabled>
+            <span class="action-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg></span>
+            <strong>Taking a break</strong><small>Rest counts too</small>
+          </button>
+        </div>
+      </section>
+
+      <section class="card map-card" aria-labelledby="collection-title">
+        <div class="section-top">
+          <div><h2 id="collection-title">My Math 5 collection</h2><p class="muted" id="collection-copy">Every finished lesson becomes a sticker. Tap one to update it.</p></div>
+          <div class="book-tabs" role="group" aria-label="Lesson book"><button class="selected" data-book="5" aria-pressed="true">Math 5</button><button data-book="6" aria-pressed="false">Math 6</button></div>
+        </div>
+        <div id="lesson-map" class="lesson-map"></div>
+        <div class="legend">
+          <span><i class="done"></i>Finished</span>
+          <span><i class="part"></i>Part done</span>
+          <span><i class="today"></i>Today</span>
+          <span><i class="check"></i>Check these</span>
+          <span><i></i>Coming up</span>
+        </div>
+      </section>
+    </div>
+
+    <aside class="side-column">
+      <section class="card overall-card">
+        <div class="ring-wrap">
+          <svg viewBox="0 0 180 180" aria-hidden="true"><circle class="ring-bg" cx="90" cy="90" r="74"/><circle id="progress-ring" class="ring-fill" cx="90" cy="90" r="74"/></svg>
+          <div class="ring-label"><strong id="book-percent">—</strong><span id="book-percent-label">of Math 5</span></div>
+        </div>
+        <p class="ring-count" id="book-count">&nbsp;</p>
+        <p class="muted" id="book-cheer">&nbsp;</p>
+      </section>
+
+      <section class="card catchup-card" id="catchup" hidden>
+        <span class="label">Quick check</span>
+        <h3 id="catchup-title">Lessons 69–74</h3>
+        <p id="catchup-copy"></p>
+        <button id="catchup-button" class="dark-button" disabled>Check them off</button>
+      </section>
+
+      <section class="card week-card">
+        <h3>This week</h3>
+        <div id="week-strip" class="week-strip"></div>
+        <p id="week-message" class="muted"></p>
+      </section>
+    </aside>
+  </div>
+</section>
+
+<section id="planning" hidden>
+  <div class="page-heading">
+    <p class="label">For Mom</p>
+    <h1>The plan</h1>
+    <p class="muted">Dates, targets and forecasts live here, away from Ninja’s screen.</p>
+  </div>
+  <div id="goals" class="goals"></div>
+  <section class="card timeline-card" aria-labelledby="timeline-title">
+    <div class="section-top"><h2 id="timeline-title">Road to 7th grade</h2><span class="muted">1 lesson per weekday · no holiday breaks</span></div>
+    <div class="timeline-scroll"><div id="timeline" class="timeline"></div></div>
+    <p id="timeline-note" class="muted"></p>
+  </section>
+  <details class="projection-info card"><summary>How do the dates work?</summary><p>We plan one lesson each Monday–Friday, with no holiday breaks. Weekend work counts too. Math 6 starts on the next weekday after Math 5 finishes. Projections use remaining lesson-equivalents, rounded up to whole study days. After a check-in today, remaining work is planned from the next weekday. An unlogged day stays unlogged; passing days still move the forecast. Target dates are reference points, not deadlines.</p><p>Starting point on November 3, 2026: lessons 1–68 finished; lessons 69–74 need confirmation. No completed work is assumed for those six lessons.</p></details>
+  <p class="small muted">Until login is added, anyone with the link can open this page.</p>
+</section>
+
+<section id="history" hidden>
+  <div class="page-heading">
+    <p class="label">Your effort, remembered</p>
+    <h1>Journal</h1>
+    <p class="muted">Big wins, tiny steps, and days you needed a breather. They all belong here.</p>
+  </div>
+  <div class="history-toolbar"><button id="add-entry" class="primary" disabled>+ Add a check-in</button><button id="export" class="secondary" disabled>Download progress</button></div>
+  <div id="history-list"></div>
+  <p class="small muted">Lessons 1–68 are your starting progress and don’t have individual check-ins. Edits stay in the private backup history.</p>
+</section>
+
+<footer><span>Made for Ninja, one lesson at a time. ♡</span><span>Notes are public · keep them non-personal <button id="refresh">↻ Refresh progress</button></span></footer>
+</main>
+
+<dialog id="entry-dialog"><form id="entry-form">
+  <div class="dialog-header"><span class="label">Check-in</span><button type="button" class="close" aria-label="Close check-in">×</button></div>
+  <h2 id="dialog-title">A little progress, a big win.</h2>
+  <p class="muted">Let’s save what you worked on.</p>
+  <div class="form-row"><label>Date<input type="date" id="entry-date" required></label><label>Book<select id="entry-book"><option value="5">Math 5</option><option value="6">Math 6</option></select></label></div>
+  <label>How did it go?<select id="entry-status"><option value="complete">Finished a lesson ✓</option><option value="partial">Did part of it</option><option value="skipped">Took a break</option></select></label>
+  <div class="form-row" id="lesson-fields"><label>Lesson number<input type="number" id="entry-lesson" min="1" max="120" step="1" required></label><label id="amount-field">Total finished so far<select id="entry-progress"><option value="0.25">¼ of the lesson</option><option value="0.5">½ of the lesson</option><option value="0.75">¾ of the lesson</option></select></label></div>
+  <p id="partial-hint" class="small muted">Choose the total completed, including earlier work on this lesson.</p>
+  <label>Anything get in the way? <span class="optional">Optional</span><select id="entry-reason"><option value="">No reason needed</option><option>Needed help</option><option>Ran out of time</option><option>Needed a rest</option><option>Other plans</option><option>Something else</option></select></label>
+  <label>A note for next time <span class="optional">Optional · public</span><textarea id="entry-note" maxlength="500" rows="3" placeholder="e.g. Pick up at practice question 8"></textarea></label>
+  <p class="form-error" id="form-error" role="alert"></p>
+  <button type="submit" class="primary save-button">Save my check-in</button>
+</form></dialog>
+
+<dialog id="catchup-dialog">
+  <div class="dialog-header"><span class="label">Quick check</span><button type="button" class="close" aria-label="Close quick check">×</button></div>
+  <h2>Which ones did you finish?</h2>
+  <p class="muted">Select the lessons you fully finished. For part-done lessons, tap the lesson in your collection instead.</p>
+  <div id="catchup-options" class="catchup-options"></div>
+  <p id="catchup-error" class="form-error" role="alert"></p>
+  <button id="save-catchup" class="primary save-button">Add these stickers</button>
+</dialog>
+
+<dialog id="delete-dialog">
+  <h2>Remove this check-in?</h2>
+  <p class="muted">Progress and dates will recalculate. A recovery copy stays in the private backups.</p>
+  <div class="form-row"><button class="secondary close" type="button">Keep it</button><button id="confirm-delete" class="primary" type="button">Remove check-in</button></div>
+  <p id="delete-error" class="form-error" role="alert"></p>
+</dialog>
+
+<dialog id="tweaks-dialog" aria-labelledby="tweaks-title">
+  <div class="dialog-header"><h2 id="tweaks-title">Tweaks</h2><button type="button" class="close" aria-label="Close tweaks">×</button></div>
+  <form id="tweaks-form">
+    <fieldset><legend>Color</legend><div class="swatches">
+      <label class="swatch lavender"><input type="radio" name="color" value="lavender"><span>Lavender</span></label>
+      <label class="swatch ocean"><input type="radio" name="color" value="ocean"><span>Ocean</span></label>
+      <label class="swatch berry"><input type="radio" name="color" value="berry"><span>Berry</span></label>
+      <label class="swatch forest"><input type="radio" name="color" value="forest"><span>Forest</span></label>
+    </div></fieldset>
+    <fieldset><legend>Light or dark</legend><div class="segmented">
+      <label><input type="radio" name="mode" value="light"><span>Light</span></label>
+      <label><input type="radio" name="mode" value="dark"><span>Dark</span></label>
+      <label><input type="radio" name="mode" value="auto"><span>Match device</span></label>
+    </div></fieldset>
+    <fieldset><legend>Text size</legend><div class="segmented">
+      <label><input type="radio" name="text" value="normal"><span>Normal</span></label>
+      <label><input type="radio" name="text" value="large"><span>Large</span></label>
+    </div></fieldset>
+    <fieldset><legend>Celebrations</legend><div class="segmented">
+      <label><input type="radio" name="effects" value="full"><span>Unicorn + confetti</span></label>
+      <label><input type="radio" name="effects" value="calm"><span>Calm</span></label>
+    </div></fieldset>
+  </form>
+  <button type="button" id="preview-celebration" class="secondary save-button">Preview the celebration</button>
+  <p class="small muted">Saved on this device.</p>
+</dialog>
+
+<dialog id="celebration" class="celebration" aria-labelledby="celebrate-title">
+  <div class="confetti" id="confetti" aria-hidden="true"></div>
+  <div class="unicorn-flight" aria-hidden="true"><span class="rainbow"></span><img src="/unicorn.svg" alt="" width="220" height="165"></div>
+  <div class="celebration-card">
+    <div class="big-sticker" id="celebrate-sticker">75</div>
+    <h2 id="celebrate-title">Lesson 75 is done!</h2>
+    <p id="celebrate-message"></p>
+    <div class="celebrate-progress" id="celebrate-progress">
+      <div class="celebrate-row"><span id="celebrate-book">Math 5</span><span id="celebrate-percent">58%</span></div>
+      <div class="celebrate-bar"><span id="celebrate-bar"></span></div>
+      <p id="celebrate-count" class="muted"></p>
+    </div>
+    <button type="button" class="primary" id="celebrate-close">Yay!</button>
+  </div>
+</dialog>
+
+<div id="toast" role="status" hidden></div>
+</body>
+</html>

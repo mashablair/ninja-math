@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 150" role="img" aria-label="A flying unicorn">
+  <g stroke="#4f436b" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round">
+    <!-- tail -->
+    <path d="M54 86C36 68 26 94 6 78" fill="none" stroke="#f08a9b" stroke-width="7"/>
+    <path d="M54 92C36 80 26 104 8 92" fill="none" stroke="#f6c453" stroke-width="7"/>
+    <path d="M55 98C38 92 28 114 10 106" fill="none" stroke="#7fd1a8" stroke-width="7"/>
+    <path d="M57 103C42 104 34 124 18 120" fill="none" stroke="#7bb8f0" stroke-width="7"/>
+    <!-- legs (tucked for flight) -->
+    <g fill="#ffffff">
+      <rect x="62" y="104" width="11" height="30" rx="5.5" transform="rotate(48 67 108)"/>
+      <rect x="76" y="108" width="11" height="28" rx="5.5" transform="rotate(28 81 112)"/>
+      <rect x="120" y="108" width="11" height="28" rx="5.5" transform="rotate(-40 125 112)"/>
+      <rect x="132" y="104" width="11" height="30" rx="5.5" transform="rotate(-62 137 108)"/>
+    </g>
+    <!-- body -->
+    <ellipse cx="100" cy="95" rx="50" ry="27" fill="#ffffff"/>
+    <!-- neck -->
+    <path d="M124 80C130 62 138 50 148 44L170 60C160 68 152 80 148 96Z" fill="#ffffff"/>
+    <!-- mane -->
+    <g stroke-width="2">
+      <circle cx="137" cy="40" r="9" fill="#f08a9b"/>
+      <circle cx="130" cy="52" r="9" fill="#f6c453"/>
+      <circle cx="125" cy="64" r="9" fill="#7fd1a8"/>
+      <circle cx="121" cy="76" r="8.5" fill="#7bb8f0"/>
+    </g>
+    <!-- ear and horn -->
+    <path d="M143 33l-2-17 12 11z" fill="#ffffff"/>
+    <path d="M150 30l8-28 7 31z" fill="#f6c453" stroke="#b9862a"/>
+    <path d="M152 22l10-3M154 14l7-2" fill="none" stroke="#b9862a" stroke-width="2"/>
+    <!-- head -->
+    <ellipse cx="160" cy="48" rx="24" ry="19" transform="rotate(20 160 48)" fill="#ffffff"/>
+    <ellipse cx="180" cy="59" rx="13" ry="11" fill="#ffe3ec"/>
+    <!-- wing -->
+    <path d="M90 76C82 46 104 26 128 32C118 42 120 52 113 62C106 70 98 73 90 76Z" fill="#ffffff"/>
+    <path d="M100 68C102 56 108 46 118 40M95 70C94 60 98 50 104 44" fill="none" stroke="#b79cf0" stroke-width="2.5"/>
+  </g>
+  <!-- face -->
+  <path d="M153 47q5-6 10 0" fill="none" stroke="#4f436b" stroke-width="3" stroke-linecap="round"/>
+  <ellipse cx="167" cy="59" rx="5" ry="3" fill="#f7b6c2"/>
+  <circle cx="183" cy="56" r="1.8" fill="#4f436b"/>
+  <!-- hooves -->
+  <g fill="#b79cf0">
+    <circle cx="49" cy="125" r="5"/>
+    <circle cx="70" cy="132" r="5"/>
+    <circle cx="141" cy="129" r="5"/>
+    <circle cx="159" cy="119" r="5"/>
+  </g>
+</svg>
