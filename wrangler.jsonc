@@ -3,9 +3,14 @@
   "name": "ninja-math-journey",
   "main": "src/worker.js",
   "compatibility_date": "2026-10-01",
+  "workers_dev": true,
   "assets": {"directory":"./public","binding":"ASSETS","run_worker_first":true},
-  "d1_databases": [{"binding":"DB","database_name":"ninja-math","database_id":"00000000-0000-0000-0000-000000000000","migrations_dir":"migrations"}],
+  "d1_databases": [{"binding":"DB","database_name":"ninja-math","database_id":"28bf39f5-ed0a-4f30-98e7-1d05f601c8fe","migrations_dir":"migrations"}],
   "r2_buckets": [{"binding":"BACKUPS","bucket_name":"ninja-math-backups"}],
+  "routes": [
+    {"pattern":"homeschool-ninja.com","custom_domain":true},
+    {"pattern":"www.homeschool-ninja.com","custom_domain":true}
+  ],
   "triggers": {"crons":["0 7 * * *"]},
   "observability": {"enabled":true}
 }
