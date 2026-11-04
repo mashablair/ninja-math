@@ -12,5 +12,6 @@
     {"pattern":"www.homeschool-ninja.com","custom_domain":true}
   ],
   "triggers": {"crons":["0 7 * * *"]},
-  "observability": {"enabled":true}
+  "observability": {"enabled":true},
+  "secrets": {"required":["AUTH_USERNAME","AUTH_PASSWORD","SESSION_SECRET"]}
 }
