@@ -101,6 +101,20 @@ main{max-width:1240px;margin:0 auto;padding:0 28px}
 .lesson-book{font-size:1.15rem;font-weight:800;color:var(--muted)}
 #next-subtitle{margin:10px 0 18px;font-size:1.05rem}
 .checkin-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.music-actions{grid-template-columns:repeat(2,minmax(0,1fr))}
+.music-today{display:flex;flex-direction:column;gap:10px;margin:14px 0 18px}
+.music-row{display:flex;align-items:center;gap:12px;background:var(--surface-2);border-radius:16px;padding:12px 14px}
+.music-row div{flex:1;min-width:0}
+.music-row strong{display:block;font-size:1.05rem}
+.music-row span,.music-row p{color:var(--muted);font-weight:700}
+.music-row p{margin:4px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.music-row button{border:0;border-radius:12px;background:var(--surface);min-height:44px;padding:0 14px;font-size:.95rem;font-weight:750}
+.music-minutes{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.music-minutes div{display:flex;justify-content:space-between;gap:12px;font-weight:800}
+.music-lessons{margin-top:20px}
+#music-heading{font-size:2rem;margin-top:6px}
+.checkin-card > p.muted{margin:10px 0 0}
+.history-symbol.lesson{background:var(--tint);color:var(--accent-text);font-size:1.4rem}
 .action{border:0;border-radius:20px;min-height:110px;padding:16px 18px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left}
 .action strong{font-size:1.2rem;font-weight:800}
 .action small{font-size:.95rem;font-weight:650}
@@ -113,6 +127,9 @@ main{max-width:1240px;margin:0 auto;padding:0 28px}
 /* ---------- Collection ---------- */
 .map-card{container-type:inline-size}
 .map-card .section-top p{margin:4px 0 0;font-size:1rem}
+.subject-tabs{display:flex;flex-wrap:wrap;gap:4px;width:fit-content;max-width:100%;background:var(--surface-2);padding:4px;border-radius:999px;margin:0 0 22px}
+.subject-tabs button{border:0;background:transparent;min-height:44px;padding:0 18px;border-radius:999px;font-size:1rem;font-weight:750;color:var(--muted)}
+.subject-tabs button.selected{background:var(--accent);color:var(--on-accent);font-weight:800}
 .book-tabs{display:flex;gap:4px;flex:none;background:var(--surface-2);padding:4px;border-radius:999px}
 .book-tabs button{border:0;background:transparent;min-height:40px;padding:0 16px;border-radius:999px;font-size:.95rem;font-weight:750;color:var(--muted)}
 .book-tabs .selected{background:var(--accent);color:var(--on-accent);font-weight:800}

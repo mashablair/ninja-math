@@ -1,14 +1,14 @@
 # Ninja’s Math Journey
 
-A pastel, mobile-friendly math dashboard built for Ninja. Vanilla HTML/CSS/JavaScript, Cloudflare Worker static assets, D1 for shared progress, and private R2 for recovery snapshots. No login, no analytics, no AI dependency.
+A pastel, mobile-friendly dashboard for Ninja’s math, English, and music. Vanilla HTML/CSS/JavaScript, Cloudflare Worker static assets, D1 for shared progress, and private R2 for recovery snapshots. No login, no analytics, no AI dependency.
 
 ## Views and Tweaks
 
-- **Today** is Ninja's screen: today's lesson, the sticker collection, book progress, a quick check for unconfirmed lessons, and the week. No dates or targets appear here.
-- **Journal** lists check-ins. **For Mom** holds projected finishes, targets, and the timeline to 7th grade.
+- **Today** is Ninja's screen. Subject tabs under the greeting switch Math, English, and Music. Math and English show today's lesson, the sticker collection, book progress, and the week. Music logs practice and teacher lessons. No dates or targets appear here.
+- **Journal** lists check-ins for the selected subject. **For Mom** holds that subject’s plan. Math keeps the timeline to 7th grade. **Download progress** lives here and exports every subject.
 - Finishing a lesson opens a celebration (flying unicorn, confetti, sticker). It turns calm automatically when the device asks for reduced motion.
 - **Tweaks** (top right) sets color theme, light/dark/auto, text size, and celebration style. Saved per device in `localStorage`; `theme.js` applies it before first paint.
-- Encouraging copy lives in `public/messages.js`. Keep it kind and specific: no streaks, guilt, or invented achievements.
+- Encouraging copy lives in `public/messages/`, one file per subject. Each subject has its own unicorn. Keep the words kind and specific: no streaks, guilt, or invented achievements.
 
 ## Start locally
 
@@ -29,6 +29,8 @@ The local dashboard uses an isolated local database and R2 store. Local test dat
 - Forecasts use remaining lesson-equivalents, rounded up. After a check-in today, the next planned work slot is the next weekday. Without a check-in today, today can still be a workday. Dates use America/New_York.
 - Math 6 starts on the weekday immediately following the Math 5 finish. Completing catch-up on Nov 3 and lesson 75 on Nov 4 projects Math 5 to Jan 6, 2027 and Math 6 to June 23, 2027.
 - Original targets remain fixed as reference points. August 2027 school start is not assigned a fabricated exact date.
+- November 4, 2026: English 5 lessons 1–22 are complete. Lesson 23 is next. The level has 120 lessons and no level 6. Its original target, March 19, 2027, is 98 weekdays from that start. The same weekday rules apply, and English progress never changes Math.
+- Music is piano, flute, and saxophone. A log is a practice or a teacher lesson, with minutes and what was played. It has no lesson fractions and no finish date.
 - Unlogged days stay unlogged; they are not automatically recorded as skips.
 - Corrections and removals recompute the derived state. Actual completion dates stay fixed after finishing a book.
 

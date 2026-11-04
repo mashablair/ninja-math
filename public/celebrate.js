@@ -28,21 +28,23 @@ function restartFlight(){
   flight.replaceWith(fresh);
 }
 
-export function celebrate({sticker,title,message,book,percent,count}){
+export function celebrate({sticker,title,message,label,percent,count,mascot='/unicorn.svg'}){
   const dialog=$('#celebration');
+  const mascotImage=document.querySelector('.unicorn-flight img');
+  if(mascotImage) mascotImage.src=mascot;
   $('#celebrate-sticker').textContent=sticker;
   $('#celebrate-title').textContent=title;
   $('#celebrate-message').textContent=message;
-  $('#celebrate-progress').hidden=book==null;
-  if(book!=null){
-    $('#celebrate-book').textContent=`Math ${book}`;
+  $('#celebrate-progress').hidden=label==null;
+  if(label!=null){
+    $('#celebrate-book').textContent=label;
     $('#celebrate-percent').textContent=`${percent}%`;
     $('#celebrate-count').textContent=count;
     $('#celebrate-bar').style.width='0';
   }
   restartFlight();confetti();
   if(!dialog.open) dialog.showModal();
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{if(book!=null)$('#celebrate-bar').style.width=percent+'%';}));
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{if(label!=null)$('#celebrate-bar').style.width=percent+'%';}));
   $('#celebrate-close').focus();
 }
 export function initCelebration(){
