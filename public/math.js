@@ -1,23 +1,12 @@
+import {today,nextSchoolDay,finishDate} from './schedule.js';
+export {today,addDays,weekday,nextSchoolDay,finishDate,pretty,materialize} from './schedule.js';
 export const BASE_DATE = '2026-11-03';
 export const TARGETS = {5:'2027-01-06', 6:'2027-06-23'};
-export function today() { return new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date()); }
-export function addDays(day,n) { const d=new Date(day+'T12:00:00Z'); d.setUTCDate(d.getUTCDate()+n); return d.toISOString().slice(0,10); }
-export function weekday(day) { const n=new Date(day+'T12:00:00Z').getUTCDay(); return n!==0&&n!==6; }
-export function nextSchoolDay(day,include=false) { let d=include?day:addDays(day,1); while(!weekday(d)) d=addDays(d,1); return d; }
-export function finishDate(start,slots) { let day=nextSchoolDay(start,true); for(let i=1;i<slots;i++) day=nextSchoolDay(day); return day; }
-export function pretty(day,year=false) { return new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',...(year?{year:'numeric'}:{}),timeZone:'UTC'}).format(new Date(day+'T12:00:00Z')); }
-export function materialize(events) {
-  const entries=new Map();
-  for(const event of [...events].sort((a,b)=>a.seq-b.seq)) {
-    if(event.operation==='remove') entries.delete(event.entry_id);
-    else entries.set(event.entry_id,{...JSON.parse(event.payload),id:event.entry_id,seq:event.seq});
-  }
-  return [...entries.values()].sort((a,b)=>a.date.localeCompare(b.date)||a.seq-b.seq);
-}
+const isMath=entry=>!entry.subject||entry.subject==='math';
 export function summarize(entries,asOf=today()) {
   const progress={5:Array.from({length:120},(_,i)=>i<68?1:0),6:Array(120).fill(0)};
   const completedOn={};
-  const ordered=entries.filter(e=>e.date<=asOf).sort((a,b)=>a.date.localeCompare(b.date)||a.seq-b.seq);
+  const ordered=entries.filter(e=>isMath(e)&&e.date<=asOf).sort((a,b)=>a.date.localeCompare(b.date)||a.seq-b.seq);
   for(const e of ordered) if(e.status!=='skipped') {
     const wasComplete=progress[e.book].every(p=>p===1);
     progress[e.book][e.lesson-1]=e.progress;
