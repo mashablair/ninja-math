@@ -22,10 +22,30 @@ const ICONS={
   skipped:'<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>',
   lesson:'♪'
 };
-let state={entries:[],revision:0}, summary, englishSummary, musicSummary, selectedBook=5, bookChosen=false, ready=false, editingId=null, editingSubject='math', editingExisting=false, deleteId=null, toastTimer, justEarned=null, subject='math';
+let state={entries:[],revision:0}, summary, englishSummary, musicSummary, selectedBook=5, bookChosen=false, ready=false, editingId=null, editingSubject='math', editingExisting=false, deleteId=null, toastTimer, justEarned=null, subject='math', authed=false, pending=null;
 try{const saved=localStorage.getItem('ninja-subject');if(['math','english','music'].includes(saved))subject=saved;}catch(error){}
 
 function toast(message){$('#toast').textContent=message;$('#toast').hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').hidden=true,4500);}
+function syncAccount(){
+  $('#account-status').textContent=authed?'Logged in on this device. Saving stays available for 30 days.':'Looking is open. Saving a check-in needs a login.';
+  $('#account-button').textContent=authed?'Log out':'Log in';
+}
+function openLogin(){
+  $('#login-error').textContent='';
+  const dialog=$('#login-dialog');
+  if(!dialog.open) dialog.showModal();
+  $('#login-username').focus();
+}
+function requireLogin(action){
+  if(authed){action();return;}
+  pending={run:action,cancel(){}};
+  openLogin();
+}
+async function refreshAuth(){
+  try{const response=await fetch('/api/session',{cache:'no-store'});const data=await response.json();authed=!!data.authenticated;}
+  catch{authed=false;}
+  syncAccount();
+}
 function availability(){ $$('[data-status],[data-en-status],#music-practice,#music-lesson,#add-entry,#export,#catchup-button').forEach(b=>b.disabled=!ready); }
 function entriesFor(name){return state.entries.filter(entry=>name==='math'?isMath(entry):entry.subject===name);}
 function setSubject(next){
@@ -48,6 +68,11 @@ async function load(){
 async function mutate(operation,entryId,entry){
   const response=await fetch('/api/entry',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({operation,entryId,entry,revision:state.revision,requestId:crypto.randomUUID()})});
   const data=await response.json();
+  if(response.status===401){
+    authed=false;syncAccount();
+    await new Promise((resolve,reject)=>{pending={run:resolve,cancel:()=>reject(new Error('Please log in to save this.'))};openLogin();});
+    return mutate(operation,entryId,entry);
+  }
   if(!response.ok){
     if(response.status===409){await load();throw new Error('Newer progress has been loaded. Your form is still here. Review it and save again.');}
     throw new Error(data.error||'Could not save. Please try again.');
@@ -315,32 +340,36 @@ $$('[data-view]').forEach(button=>button.addEventListener('click',()=>{
   ['dashboard','history','planning'].forEach(view=>$('#'+view).hidden=button.dataset.view!==view);
   window.scrollTo({top:0});
 }));
-$$('[data-status]').forEach(button=>button.addEventListener('click',()=>openEntry(button.dataset.status)));
-$$('[data-en-status]').forEach(button=>button.addEventListener('click',()=>openEnglish(button.dataset.enStatus)));
+$$('[data-status]').forEach(button=>button.addEventListener('click',()=>requireLogin(()=>openEntry(button.dataset.status))));
+$$('[data-en-status]').forEach(button=>button.addEventListener('click',()=>requireLogin(()=>openEnglish(button.dataset.enStatus))));
 $$('[data-book]').forEach(button=>button.addEventListener('click',()=>{setBook(Number(button.dataset.book));if(ready)renderMap();}));
 $('#lesson-map').addEventListener('click',event=>{
   const button=event.target.closest('[data-lesson]');if(!button||!ready)return;
-  const lesson=Number(button.dataset.lesson),progress=summary.progress[selectedBook][lesson-1];
-  const existing=[...state.entries].reverse().find(entry=>isMath(entry)&&entry.book===selectedBook&&entry.lesson===lesson&&entry.date===today());
-  openEntry(progress>0&&progress<1?'partial':'complete',selectedBook,lesson,existing||null);
+  requireLogin(()=>{
+    const lesson=Number(button.dataset.lesson),progress=summary.progress[selectedBook][lesson-1];
+    const existing=[...state.entries].reverse().find(entry=>isMath(entry)&&entry.book===selectedBook&&entry.lesson===lesson&&entry.date===today());
+    openEntry(progress>0&&progress<1?'partial':'complete',selectedBook,lesson,existing||null);
+  });
 });
 $('#en-lesson-map').addEventListener('click',event=>{
   const button=event.target.closest('[data-en-lesson]');if(!button||!ready)return;
-  const lesson=Number(button.dataset.enLesson),progress=englishSummary.progress[lesson-1];
-  const existing=[...state.entries].reverse().find(entry=>entry.subject==='english'&&entry.lesson===lesson&&entry.date===today());
-  openEnglish(progress>0&&progress<1?'partial':'complete',lesson,existing||null);
+  requireLogin(()=>{
+    const lesson=Number(button.dataset.enLesson),progress=englishSummary.progress[lesson-1];
+    const existing=[...state.entries].reverse().find(entry=>entry.subject==='english'&&entry.lesson===lesson&&entry.date===today());
+    openEnglish(progress>0&&progress<1?'partial':'complete',lesson,existing||null);
+  });
 });
 $('#history-list').addEventListener('click',event=>{
   const edit=event.target.closest('[data-edit]'),remove=event.target.closest('[data-delete]');
-  if(edit) editEntry(edit.dataset.edit);
-  if(remove){deleteId=remove.dataset.delete;$('#delete-error').textContent='';$('#delete-dialog').showModal();}
+  if(edit) requireLogin(()=>editEntry(edit.dataset.edit));
+  if(remove) requireLogin(()=>{deleteId=remove.dataset.delete;$('#delete-error').textContent='';$('#delete-dialog').showModal();});
 });
-$('#music-today').addEventListener('click',event=>{const edit=event.target.closest('[data-edit]');if(edit)editEntry(edit.dataset.edit);});
+$('#music-today').addEventListener('click',event=>{const edit=event.target.closest('[data-edit]');if(edit)requireLogin(()=>editEntry(edit.dataset.edit));});
 $$('.close').forEach(button=>button.addEventListener('click',()=>button.closest('dialog').close()));
 $('#entry-status').addEventListener('change',syncFields);
-$('#add-entry').addEventListener('click',()=>{if(subject==='music')openMusic();else if(subject==='english')openEnglish();else openEntry();});
-$('#music-practice').addEventListener('click',()=>openMusic(null,'practice'));
-$('#music-lesson').addEventListener('click',()=>openMusic(null,'lesson'));
+$('#add-entry').addEventListener('click',()=>requireLogin(()=>{if(subject==='music')openMusic();else if(subject==='english')openEnglish();else openEntry();}));
+$('#music-practice').addEventListener('click',()=>requireLogin(()=>openMusic(null,'practice')));
+$('#music-lesson').addEventListener('click',()=>requireLogin(()=>openMusic(null,'lesson')));
 $('#refresh').addEventListener('click',load);
 $('#entry-form').addEventListener('submit',async event=>{
   event.preventDefault();if(!ready&&!await load()){$('#form-error').textContent='Still unable to connect. Your form is saved here; try Save again when you are online.';return;}
@@ -378,10 +407,10 @@ $('#confirm-delete').addEventListener('click',async event=>{
   try{await mutate('remove',deleteId);$('#delete-dialog').close();toast('Check-in removed. Your dates are updated.');}
   catch(error){$('#delete-error').textContent=error.message;}finally{event.target.disabled=false;}
 });
-$('#catchup-button').addEventListener('click',()=>{
+$('#catchup-button').addEventListener('click',()=>requireLogin(()=>{
   $('#catchup-options').innerHTML=summary.backlog.map(lesson=>`<label>Lesson ${lesson}<input type="checkbox" value="${lesson}" aria-label="Lesson ${lesson} fully finished"></label>`).join('');
   $('#catchup-error').textContent='';$('#catchup-dialog').showModal();
-});
+}));
 $('#save-catchup').addEventListener('click',async event=>{
   const selected=$$('#catchup-options input:checked');if(!selected.length){$('#catchup-error').textContent='Select at least one finished lesson.';return;}
   event.target.disabled=true;$('#catchup-error').textContent='';
@@ -417,6 +446,13 @@ function initTweaks(){
     syncThemeColor();
   });
   $('#tweaks-button').addEventListener('click',()=>$('#tweaks-dialog').showModal());
+  $('#account-button').addEventListener('click',async()=>{
+    if(!authed){$('#tweaks-dialog').close();requireLogin(()=>{});return;}
+    const button=$('#account-button');button.disabled=true;
+    try{await fetch('/api/logout',{method:'POST'});authed=false;syncAccount();}
+    catch{$('#account-status').textContent='Could not log out. Try again.';}
+    finally{button.disabled=false;}
+  });
   $('#preview-celebration').addEventListener('click',()=>{
     $('#tweaks-dialog').close();
     if(subject==='music'){celebrate({sticker:'♪',title:'This is what practice looks like!',message:'Log a practice to earn the real thing.',mascot:MASCOT.music});return;}
@@ -433,7 +469,24 @@ function initTweaks(){
 }
 
 $('#entry-instrument').innerHTML=INSTRUMENTS.map(item=>`<option value="${item.id}">${item.name}</option>`).join('');
+$('#login-dialog').addEventListener('close',()=>{const job=pending;pending=null;if(!authed&&job)job.cancel();});
+$('#login-form').addEventListener('submit',async event=>{
+  event.preventDefault();
+  const button=event.submitter;button.disabled=true;$('#login-error').textContent='';
+  try{
+    const response=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:$('#login-username').value,password:$('#login-password').value})});
+    const data=await response.json().catch(()=>({}));
+    if(!response.ok){$('#login-error').textContent=data.error||'That username or password does not match.';return;}
+    authed=true;syncAccount();
+    const job=pending;pending=null;
+    $('#login-password').value='';
+    $('#login-dialog').close();
+    if(job) job.run();
+  }catch{$('#login-error').textContent='Could not log in. Check your connection and try again.';}
+  finally{button.disabled=false;}
+});
 initCelebration();initTweaks();
+refreshAuth();
 window.addEventListener('online',()=>{if(!document.querySelector('dialog[open]'))load();});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&!document.querySelector('dialog[open]'))load();});
 load();

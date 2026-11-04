@@ -242,7 +242,7 @@
       <div id="music-lesson-list"></div>
     </section>
   </div>
-  <p class="small muted">Until login is added, anyone with the link can open this page.</p>
+  <p class="small muted">Anyone with the link can look at this page. Saving a check-in needs the shared login.</p>
 </section>
 
 <section id="history" hidden>
@@ -325,8 +325,20 @@
     </div></fieldset>
   </form>
   <button type="button" id="preview-celebration" class="secondary save-button">Preview the celebration</button>
-  <p class="small muted">Saved on this device.</p>
+  <p id="account-status" class="small muted">Looking is open. Saving a check-in needs a login.</p>
+  <button type="button" id="account-button" class="secondary save-button">Log in</button>
+  <p class="small muted">Color, text, and celebrations are saved on this device.</p>
 </dialog>
+
+<dialog id="login-dialog" aria-labelledby="login-title"><form id="login-form">
+  <div class="dialog-header"><span class="label">Save a check-in</span><button type="button" class="close" aria-label="Close login">×</button></div>
+  <h2 id="login-title">Log in to save</h2>
+  <p class="muted">You can look through the days and lessons. Logging in lets this device save a check-in.</p>
+  <label>Username<input id="login-username" name="username" autocomplete="username" required></label>
+  <label>Password<input id="login-password" name="password" type="password" autocomplete="current-password" required></label>
+  <p class="form-error" id="login-error" role="alert"></p>
+  <button type="submit" class="primary save-button">Log in</button>
+</form></dialog>
 
 <dialog id="celebration" class="celebration" aria-labelledby="celebrate-title">
   <div class="confetti" id="confetti" aria-hidden="true"></div>

@@ -1,13 +1,13 @@
 # Ninja’s Math Journey
 
-A pastel, mobile-friendly dashboard for Ninja’s math, English, and music. Vanilla HTML/CSS/JavaScript, Cloudflare Worker static assets, D1 for shared progress, and private R2 for recovery snapshots. No login, no analytics, no AI dependency.
+A pastel, mobile-friendly dashboard for Ninja’s math, English, and music. Vanilla HTML/CSS/JavaScript, Cloudflare Worker static assets, D1 for shared progress, and private R2 for recovery snapshots. Anyone can look. One shared login can save. No analytics and no AI dependency.
 
 ## Views and Tweaks
 
 - **Today** is Ninja's screen. Subject tabs under the greeting switch Math, English, and Music. Math and English show today's lesson, the sticker collection, book progress, and the week. Music logs practice and teacher lessons. No dates or targets appear here.
 - **Journal** lists check-ins for the selected subject. **For Mom** holds that subject’s plan. Math keeps the timeline to 7th grade. **Download progress** lives here and exports every subject.
 - Finishing a lesson opens a celebration (flying unicorn, confetti, sticker). It turns calm automatically when the device asks for reduced motion.
-- **Tweaks** (top right) sets color theme, light/dark/auto, text size, and celebration style. Saved per device in `localStorage`; `theme.js` applies it before first paint.
+- **Tweaks** (top right) sets color theme, light/dark/auto, text size, and celebration style. Saved per device in `localStorage`; `theme.js` applies it before first paint. Log in and Log out live here too. A login lasts 30 days on that device.
 - Encouraging copy lives in `public/messages/`, one file per subject. Each subject has its own unicorn. Keep the words kind and specific: no streaks, guilt, or invented achievements.
 
 ## Start locally
@@ -68,7 +68,9 @@ The first command previews the snapshot. `--apply` exports a full pre-restore SQ
 
 ## Public access limits
 
-This version deliberately has no authentication: anyone who knows the URL can view notes or change progress. `noindex` discourages search indexing but is not access control. Keep notes non-personal. Server-side validation, same-origin browser requests, per-IP write throttling, optimistic concurrency checks, escaped UI output, and private backups limit mistakes and support recovery; they do not make anonymous edits trusted. Add authentication before storing sensitive content or adding paid AI endpoints.
+Anyone who knows the URL can view the dashboard, including notes. `noindex` discourages search indexing but is not access control. Keep notes non-personal. Saving, editing, removing, and confirming catch-up lessons require the one shared login. There is no signup. The username, password, and session signing key are Worker secrets named `AUTH_USERNAME`, `AUTH_PASSWORD`, and `SESSION_SECRET`. Local development reads them from `.dev.vars`, which stays out of git. Set the same three secrets on the Worker before deploying this version. A session cookie lasts 30 days. Changing the password or the signing key signs that device out.
+
+Server-side validation, same-origin browser requests, per-IP write throttling, login throttling, optimistic concurrency checks, escaped UI output, and private backups remain in place. Rate limiting is not the login.
 
 ## Validation
 
@@ -77,8 +79,8 @@ npm test
 node --check public/app.js
 ```
 
-Tests cover inclusive weekday math, linked dates, unknown catch-up work, skipped and unlogged days, cumulative partial lessons, weekend work, persistent completion dates, event corrections, and invalid input. Local browser QA covers saving partial work, editing to complete, skipped days, removal, journal persistence, and responsive layout.
+Tests cover inclusive weekday math, linked dates, unknown catch-up work, skipped and unlogged days, cumulative partial lessons, weekend work, persistent completion dates, event corrections, invalid input, and the login that guards writes. Local browser QA covers saving partial work, editing to complete, skipped days, removal, journal persistence, and responsive layout.
 
 ## Future AI
 
-Add server-side `/api/ai/*` routes in `src/worker.js` with the OpenAI key stored as a Cloudflare secret. Add login, usage limits, and a suitable child-facing design first. Keep progress and date arithmetic deterministic and independent of model responses. No API key is needed for this release.
+Add server-side `/api/ai/*` routes in `src/worker.js` with the OpenAI key stored as a Cloudflare secret. Those routes must require the shared login, plus usage limits and a suitable child-facing design. Keep progress and date arithmetic deterministic and independent of model responses. No API key is needed for this release.

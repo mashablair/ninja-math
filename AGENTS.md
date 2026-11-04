@@ -2,7 +2,7 @@
 
 Use `README.md` for architecture, scheduling rules, and recovery. The dashboard is for a child known publicly only as Ninja. Preserve its warm pastel design and avoid guilt, punitive streaks, or fabricated achievements.
 
-- User requested public access without login for v1. Do not quietly add authentication or claim rate limiting provides authentication.
+- Viewing stays public. Saves, edits, removals, and catch-up confirmations require the one shared login. Do not add account signup, or treat rate limiting as authentication.
 - Never mark lessons 69–74 finished without a logged confirmation. Baseline complete lessons are 1–68.
 - Progress is per-lesson cumulative completion, not an additive ledger of fractions.
 - Keep projections in `public/math.js` shared with tests. Math 6 depends on Math 5's completion.
