@@ -1,13 +1,35 @@
 import { BASE_DATE, today, materialize } from '../public/math.js';
+import { BASE_DATE as ENGLISH_BASE, LEVEL } from '../public/english.js';
+import { INSTRUMENTS, KINDS, MAX_MINUTES } from '../public/music.js';
 const headers={'Content-Type':'application/json','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'};
 const json=(data,status=200)=>new Response(JSON.stringify(data),{status,headers});
 const idValid=x=>typeof x==='string'&&/^[a-zA-Z0-9-]{8,80}$/.test(x);
-export function validate(entry) {
-  if(!entry||!/^\d{4}-\d{2}-\d{2}$/.test(entry.date)||Number.isNaN(Date.parse(entry.date))||new Date(entry.date+'T12:00:00Z').toISOString().slice(0,10)!==entry.date||entry.date<BASE_DATE||entry.date>today()) throw new Error('Choose a real date from November 3, 2026 through today.');
-  if(![5,6].includes(entry.book)||!['complete','partial','skipped'].includes(entry.status)) throw new Error('Choose a valid book and check-in.');
+function assertDate(date,earliest) {
+  const label=earliest===ENGLISH_BASE?'November 4, 2026':'November 3, 2026';
+  if(!date||!/^\d{4}-\d{2}-\d{2}$/.test(date)||Number.isNaN(Date.parse(date))||new Date(date+'T12:00:00Z').toISOString().slice(0,10)!==date||date<earliest||date>today()) throw new Error(`Choose a real date from ${label} through today.`);
+}
+function lessonEntry(entry,subject,earliest) {
+  assertDate(entry.date,earliest);
+  if(!['complete','partial','skipped'].includes(entry.status)) throw new Error('Choose a valid book and check-in.');
   if(typeof entry.note!=='string'||entry.note.length>500||typeof entry.reason!=='string'||entry.reason.length>100) throw new Error('Keep notes under 500 characters.');
   if(entry.status!=='skipped'&&(!Number.isInteger(entry.lesson)||entry.lesson<1||entry.lesson>120||![0.25,0.5,0.75,1].includes(entry.progress)||(entry.status==='complete')!==(entry.progress===1))) throw new Error('Choose a lesson from 1–120 and its completed amount.');
-  return {date:entry.date,book:entry.book,status:entry.status,lesson:entry.status==='skipped'?null:entry.lesson,progress:entry.status==='skipped'?0:entry.progress,note:entry.note.trim(),reason:entry.reason.trim()};
+  return {date:entry.date,status:entry.status,lesson:entry.status==='skipped'?null:entry.lesson,progress:entry.status==='skipped'?0:entry.progress,note:entry.note.trim(),reason:entry.reason.trim(),subject};
+}
+export function validate(entry) {
+  if(!entry||typeof entry!=='object'||Array.isArray(entry)) throw new Error('Choose a real date from November 3, 2026 through today.');
+  if(entry.subject==='english') return {level:LEVEL,...lessonEntry(entry,'english',ENGLISH_BASE)};
+  if(entry.subject==='music') {
+    assertDate(entry.date,BASE_DATE);
+    if(!INSTRUMENTS.some(item=>item.id===entry.instrument)||!KINDS.includes(entry.kind)) throw new Error('Choose piano, flute, or saxophone, and practice or a teacher lesson.');
+    if(!Number.isInteger(entry.minutes)||entry.minutes<1||entry.minutes>MAX_MINUTES) throw new Error('Choose the minutes you practiced, from 1 to 180.');
+    if(typeof entry.focus!=='string'||!entry.focus.trim()||entry.focus.length>200) throw new Error(entry.focus?.length>200?'Keep what you practiced under 200 characters.':'Choose what you practiced.');
+    if(typeof entry.note!=='string'||entry.note.length>500) throw new Error('Keep notes under 500 characters.');
+    return {subject:'music',date:entry.date,instrument:entry.instrument,kind:entry.kind,minutes:entry.minutes,focus:entry.focus.trim(),note:entry.note.trim()};
+  }
+  if(entry.subject&&entry.subject!=='math') throw new Error('Choose a valid subject.');
+  const saved=lessonEntry(entry,'math',BASE_DATE);
+  if(![5,6].includes(entry.book)) throw new Error('Choose a valid book and check-in.');
+  return {...saved,book:entry.book};
 }
 async function events(env) { return (await env.DB.prepare('SELECT * FROM events ORDER BY seq').all()).results; }
 async function backup(env,key) {

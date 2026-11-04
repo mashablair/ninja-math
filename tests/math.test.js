@@ -36,4 +36,5 @@ test('edits and removals materialize correctly without erasing audit events',()=
 });
 test('bad lesson numbers, impossible dates and oversized notes are rejected',()=>{
   assert.throws(()=>validate(entry(121)),/Choose/);assert.throws(()=>validate(entry(1,'2026-02-30')),/Choose/);assert.throws(()=>validate({...entry(75),note:'x'.repeat(501)}),/Keep/);assert.throws(()=>validate(entry(75,'2099-01-01')),/Choose/);
+  assert.equal(validate(entry(75)).subject,'math');
 });
