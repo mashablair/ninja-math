@@ -9,6 +9,9 @@ const wrangler=['node_modules/wrangler/bin/wrangler.js'];
 
 if(import.meta.url===`file://${process.argv[1]}`){
   rmSync(E2E.persist,{recursive:true,force:true});
+  // Test the same build that deploys; wrangler then finds its generated config.
+  const build=spawnSync(process.execPath,['node_modules/vite/bin/vite.js','build','--logLevel','warn'],{env,stdio:'inherit'});
+  if(build.status!==0) process.exit(build.status??1);
   const migrate=spawnSync(process.execPath,[...wrangler,'d1','migrations','apply','ninja-math','--local','--persist-to',E2E.persist],{env,stdio:'inherit'});
   if(migrate.status!==0) process.exit(migrate.status??1);
   const server=spawn(process.execPath,[...wrangler,'dev','--local','--persist-to',E2E.persist,'--port',String(E2E.port),'--show-interactive-dev-session=false',

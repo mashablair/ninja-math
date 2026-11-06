@@ -1,9 +1,12 @@
-import test from 'node:test';
+import {test} from 'vitest';
 import assert from 'node:assert/strict';
-import {finishDate} from '../public/schedule.js';
-import {summarize,TARGET,BASE_DATE} from '../public/english.js';
-import {summarize as summarizeMath} from '../public/math.js';
-import {validate} from '../src/worker.js';
+import {finishDate} from '../src/domain/dates.ts';
+import {validate} from '../src/domain/validate.ts';
+import {summarizeCourse} from '../src/domain/subjects/course.ts';
+import {MATH,ENGLISH} from '../src/domain/student.ts';
+const summarize=(entries:any[],asOf:string)=>{const s=summarizeCourse(ENGLISH,entries,asOf);return {...s,...s.books[5]!};};
+const summarizeMath=(entries:any[],asOf:string)=>summarizeCourse(MATH,entries,asOf);
+const TARGET=ENGLISH.books[0]!.target, BASE_DATE=ENGLISH.start;
 const entry=(lesson,date='2026-11-04',progress=1,seq=lesson)=>({subject:'english',lesson,date,progress,seq,status:progress===1?'complete':'partial',note:'',reason:''});
 
 test('english target is 98 weekdays from the november 4 baseline',()=>{
@@ -31,7 +34,7 @@ test('english partial work is cumulative',()=>{
 });
 test('english check-ins do not change math',()=>{
   const s=summarizeMath([entry(23)],'2026-11-04');
-  assert.equal(s.totals[5],68);assert.equal(s.loggedToday,false);assert.equal(s.nextLesson,75);
+  assert.equal(s.books[5]!.total,68);assert.equal(s.loggedToday,false);assert.equal(s.nextLesson,75);
 });
 test('english validation accepts one level and rejects a date before the baseline',()=>{
   assert.equal(validate(entry(23)).subject,'english');

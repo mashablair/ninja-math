@@ -1,15 +1,23 @@
 # Ninja’s Math Journey
 
-A pastel, mobile-friendly dashboard for Ninja’s math, English, music, and sports. Vanilla HTML/CSS/JavaScript, Cloudflare Worker static assets, D1 for shared progress, and private R2 for recovery snapshots. Anyone can look. One shared login can save. No analytics and no AI dependency.
+A pastel, mobile-friendly dashboard for Ninja’s math, English, music, and sports. TypeScript and plain browser JavaScript built with Vite, one Cloudflare Worker (Hono) for the pages and API, D1 for shared progress, and private R2 for recovery snapshots. Anyone can look. One shared login can save. No analytics and no AI dependency.
+
+## Code layout
+
+- `src/domain/` is the rules, with no browser or Cloudflare code, so the page, the Worker, the tests, and the restore script all share it. `student.ts` describes Ninja and her subjects as data: each is a **course** (books of lessons with targets, like Math and English) or a **practice** (minutes per instrument or activity, like Music and Sports). `subjects/course.ts` and `subjects/practice.ts` hold the projections and calendars. `validate.ts` holds the check-in schemas (Zod). `events.ts` replays the append-only events into entries.
+- `src/server/` is the Worker: routes in `index.ts`, the login in `auth.ts`, security headers in `security.ts`. A `ValidationError` from the domain becomes a 400; anything else is logged and becomes a 500.
+- `src/web/` is the page script, styles, celebration sounds, and encouraging copy. `legacy.js` adapts domain summaries to the shapes the page still expects; it goes away with the React rewrite.
+- `index.html` is the page. `public/` holds files served as-is: pictures, fonts, `theme.js`, `robots.txt`.
+- Saved check-ins carry `v: 1`. Older Math check-ins saved before subjects existed are read as Math.
 
 ## Views and Tweaks
 
 - **Today** is Ninja's screen. Subject tabs under the greeting switch Math, English, Music, and Sports. Math and English show today's lesson, the sticker collection, book progress, and the week. Music logs practice and teacher lessons, with a year-long practice calendar per instrument: green for practice, orange for teacher lessons, darker for more minutes (1–14, 15–29, 30–44, 45+). Sports uses the same calendar per activity, all green. Both count days, never streaks. No dates or targets appear here.
 - **Journal** lists check-ins for the selected subject. **For Mom** holds that subject’s plan. Math keeps the timeline to 7th grade. **Download progress** lives here and exports every subject.
 - Finishing a lesson opens a celebration (flying unicorn, confetti, sticker). It turns calm automatically when the device asks for reduced motion.
-- Each subject's celebration plays its own short jingle, synthesized in `public/sounds.js` (no audio files): a chime for Math, a harp sweep for English, a little tune for Music, drums and a fanfare for Sports. Finishing a whole book adds a finale. Tweaks › Sounds turns them off. A phone or tablet on silent stays silent.
+- Each subject's celebration plays its own short jingle, synthesized in `src/web/sounds.js` (no audio files): a chime for Math, a harp sweep for English, a little tune for Music, drums and a fanfare for Sports. Finishing a whole book adds a finale. Tweaks › Sounds turns them off. A phone or tablet on silent stays silent.
 - **Tweaks** (top right) sets color theme, light/dark/auto, text size, celebration style, and sounds. Saved per device in `localStorage`; `theme.js` applies it before first paint. Log in and Log out live here too. A login lasts 30 days on that device.
-- Encouraging copy lives in `public/messages/`, one file per subject. Each subject has its own unicorn. Keep the words kind and specific: no streaks, guilt, or invented achievements.
+- Encouraging copy lives in `src/web/messages/`, one file per subject. Each subject has its own unicorn. Keep the words kind and specific: no streaks, guilt, or invented achievements.
 
 ## Start locally
 
@@ -33,8 +41,8 @@ The local dashboard uses an isolated local database and R2 store. Local test dat
 - Original targets remain fixed as reference points. August 2027 school start is not assigned a fabricated exact date.
 - November 4, 2026: English 5 lessons 1–22 are complete. Lesson 23 is next. The level has 120 lessons and no level 6. Its original target, March 19, 2027, is 98 weekdays from that start. The same weekday rules apply, and English progress never changes Math.
 - Music is piano, flute, and saxophone. A log is a practice or a teacher lesson, with minutes and what was played. Teacher lessons are always 30 minutes, so the form doesn't ask. It has no lesson fractions and no finish date.
-- Sports is gym, running, mountain biking, snorkeling, and water skiing (`ACTIVITIES` in `public/sports.js`; add one there plus a `public/ninja-<id>.webp` picture). A log is one activity with minutes (1–300) and an optional line about it. There are no teacher lessons. Music and Sports share the calendar code in `public/calendar.js`.
-- What was played is a pick from that instrument's song bank, plus optional free text; a log needs at least one of the two. Songs are append-only `song` entries: adding saves one, archiving saves it again with `archived: true` so old logs keep their song names. Saxophone starts with Ragtime, In the Mood, and Satin Doll (in `public/music.js`).
+- Sports is gym, running, mountain biking, snorkeling, and water skiing (`SPORTS` in `src/domain/student.ts`; add one there plus a `public/ninja-<id>.webp` picture). A log is one activity with minutes (1–300) and an optional line about it. There are no teacher lessons. Music and Sports are both practice subjects and share `src/domain/subjects/practice.ts`.
+- What was played is a pick from that instrument's song bank, plus optional free text; a log needs at least one of the two. Songs are append-only `song` entries: adding saves one, archiving saves it again with `archived: true` so old logs keep their song names. Saxophone starts with Ragtime, In the Mood, and Satin Doll (`MUSIC` in `src/domain/student.ts`).
 - Unlogged days stay unlogged; they are not automatically recorded as skips.
 - Corrections and removals recompute the derived state. Actual completion dates stay fixed after finishing a book.
 
@@ -50,6 +58,8 @@ npm run deploy
 ```
 
 Use the account and resource identifiers already recorded in `wrangler.jsonc`; do not recreate resources on subsequent deploys. Cloudflare Workers serves both the pages and API under one public URL. Pushes to `main` on GitHub deploy this Worker. `npm run deploy` remains available for a manual deploy from this checkout.
+
+Always build before deploying. `vite build` writes the page to `dist/client` and the Worker to `dist/ninja_math_journey`, plus a generated config that `wrangler deploy` picks up automatically. Deploying without a build would publish the Worker without its pages.
 
 ## Backups and recovery
 
@@ -79,18 +89,19 @@ Server-side validation, same-origin browser requests, per-IP write throttling, l
 ## Validation
 
 ```sh
+npm run typecheck   # TypeScript, for the app and the tests
 npm test            # unit tests: scheduling, progress, validation, login
-npm run test:e2e    # browser tests of every check-in flow (first time: npx playwright install chromium)
-npm run check       # both
+npm run test:e2e    # builds, then browser-tests every check-in flow (first time: npx playwright install chromium)
+npm run check       # all three
 npm run pull:live   # replace the LOCAL database with a copy of the live check-ins
 ```
 
-Unit tests cover inclusive weekday math, linked dates, unknown catch-up work, skipped and unlogged days, cumulative partial lessons, weekend work, persistent completion dates, event corrections, invalid input, and the login that guards writes. Browser tests (`tests/e2e/`, an iPad-sized Chromium) cover the login gate and the Math, English, Music, and Sports check-ins, including edit and remove. They start their own server on port 8790 with a fresh database in `.wrangler/e2e` and test-only credentials, so they never touch your local copy of real data or production.
+Unit tests cover inclusive weekday math, linked dates, unknown catch-up work, skipped and unlogged days, cumulative partial lessons, weekend work, persistent completion dates, event corrections, invalid input, and the login that guards writes. Browser tests (`tests/e2e/`, an iPad-sized Chromium) cover the login gate and the Math, English, Music, and Sports check-ins, including edit and remove. They run against the production build, on their own server on port 8790 with a fresh database in `.wrangler/e2e` and test-only credentials, so they never touch your local copy of real data or production.
 
 `pull:live` only reads the public `/api/state` and only writes with `--local`. Use it instead of inventing test data when checking something by hand.
 
-GitHub Actions runs both suites on every push and pull request. The Cloudflare build for `main` runs `npm test` before `wrangler deploy`, so a failing unit test stops the deploy.
+GitHub Actions runs all three on every push and pull request. The Cloudflare build for `main` runs `npm test && npm run build` before `wrangler deploy`, so a failing unit test stops the deploy.
 
 ## Future AI
 
-Add server-side `/api/ai/*` routes in `src/worker.js` with the OpenAI key stored as a Cloudflare secret. Those routes must require the shared login, plus usage limits and a suitable child-facing design. Keep progress and date arithmetic deterministic and independent of model responses. No API key is needed for this release.
+Add server-side `/api/ai/*` routes in `src/server/index.ts` with the OpenAI key stored as a Cloudflare secret. Those routes must require the shared login, plus usage limits and a suitable child-facing design. Keep progress and date arithmetic deterministic and independent of model responses. No API key is needed for this release.

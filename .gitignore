@@ -9,3 +9,5 @@ backups/
 art/
 test-results/
 playwright-report/
+dist/
+worker-configuration.d.ts

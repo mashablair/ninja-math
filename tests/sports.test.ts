@@ -1,9 +1,14 @@
-import test from 'node:test';
+import {test} from 'vitest';
 import assert from 'node:assert/strict';
-import {summarize,sportsCalendar,ACTIVITIES,MAX_SPORT_MINUTES} from '../public/sports.js';
-import {summarize as summarizeMusic} from '../public/music.js';
-import {summarize as summarizeMath} from '../public/math.js';
-import {validate} from '../src/worker.js';
+import {validate} from '../src/domain/validate.ts';
+import {summarizeCourse} from '../src/domain/subjects/course.ts';
+import {summarizePractice,practiceCalendar} from '../src/domain/subjects/practice.ts';
+import {MATH,MUSIC,SPORTS} from '../src/domain/student.ts';
+const summarize=(entries:any[],asOf:string)=>summarizePractice(SPORTS,entries,asOf);
+const summarizeMusic=(entries:any[],asOf:string)=>summarizePractice(MUSIC,entries,asOf);
+const summarizeMath=(entries:any[],asOf:string)=>summarizeCourse(MATH,entries,asOf);
+const sportsCalendar=(entries:any[],item:string,asOf:string)=>practiceCalendar(SPORTS,entries,item,asOf);
+const ACTIVITIES=SPORTS.items, MAX_SPORT_MINUTES=SPORTS.maxMinutes;
 const entry=(activity,minutes,date='2026-11-04',seq=1)=>({subject:'sports',activity,minutes,date,seq,focus:'',note:''});
 
 test('sports minutes add up per activity for the current week',()=>{
@@ -22,12 +27,12 @@ test('sports calendar keeps each activity separate and has no lesson days',()=>{
 });
 test('sports do not change math or music',()=>{
   const logs=[entry('gym',30)];
-  assert.equal(summarizeMath(logs,'2026-11-04').totals[5],68);
+  assert.equal(summarizeMath(logs,'2026-11-04').books[5]!.total,68);
   assert.equal(summarizeMath(logs,'2026-11-04').loggedToday,false);
   assert.equal(summarizeMusic(logs,'2026-11-04').loggedToday,false);
 });
 test('sports validation keeps the log small and specific',()=>{
-  assert.deepEqual(validate({...entry('water-skiing',40),focus:'  Got up on the first try ',note:''}),{subject:'sports',date:'2026-11-04',activity:'water-skiing',minutes:40,focus:'Got up on the first try',note:''});
+  assert.deepEqual(validate({...entry('water-skiing',40),focus:'  Got up on the first try ',note:''}),{v:1,subject:'sports',date:'2026-11-04',activity:'water-skiing',minutes:40,focus:'Got up on the first try',note:''});
   assert.throws(()=>validate(entry('golf',30)),/Choose one of the sports/);
   assert.throws(()=>validate(entry('gym',0)),/minutes/);
   assert.throws(()=>validate(entry('gym',MAX_SPORT_MINUTES+1)),/minutes/);

@@ -1,8 +1,8 @@
 import {readFileSync,mkdirSync,writeFileSync} from 'node:fs';
 import {spawnSync} from 'node:child_process';
 import {randomUUID} from 'node:crypto';
-import {materialize} from '../public/math.js';
-import {validate} from '../src/worker.js';
+import {materialize} from '../src/domain/events.ts';
+import {validate} from '../src/domain/validate.ts';
 
 // Owner-only CLI. Nothing on the public website can read or restore R2 backups.
 const [path,...flags]=process.argv.slice(2);

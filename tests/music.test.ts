@@ -1,8 +1,15 @@
-import test from 'node:test';
+import {test} from 'vitest';
 import assert from 'node:assert/strict';
-import {summarize,practiceCalendar,level,CALENDAR_WEEKS,songBank,songsFor} from '../public/music.js';
-import {summarize as summarizeMath,materialize} from '../public/math.js';
-import {validate} from '../src/worker.js';
+import {level,CALENDAR_WEEKS} from '../src/domain/calendar.ts';
+import {materialize,type StoredEvent} from '../src/domain/events.ts';
+import {validate} from '../src/domain/validate.ts';
+import {summarizeCourse} from '../src/domain/subjects/course.ts';
+import {summarizePractice,practiceCalendar as calendarFor,songBank as bankFor,songsFor} from '../src/domain/subjects/practice.ts';
+import {MATH,MUSIC} from '../src/domain/student.ts';
+const summarize=(entries:any[],asOf:string)=>summarizePractice(MUSIC,entries,asOf);
+const summarizeMath=(entries:any[],asOf:string)=>summarizeCourse(MATH,entries,asOf);
+const practiceCalendar=(entries:any[],item:string,asOf:string)=>calendarFor(MUSIC,entries,item,asOf);
+const songBank=(entries:any[])=>bankFor(MUSIC,entries);
 const entry=(instrument,minutes,kind='practice',date='2026-11-04',seq=1)=>({subject:'music',instrument,kind,minutes,date,seq,focus:'Long tones',note:''});
 
 test('music minutes add up per instrument for the current week',()=>{
@@ -43,11 +50,11 @@ test('practice shades use fixed minute steps',()=>{
 });
 test('music check-ins do not change math',()=>{
   const s=summarizeMath([entry('piano',20)],'2026-11-04');
-  assert.equal(s.totals[5],68);assert.equal(s.loggedToday,false);
+  assert.equal(s.books[5]!.total,68);assert.equal(s.loggedToday,false);
 });
 test('music validation keeps the practice log small and specific',()=>{
   const saved=validate({subject:'music',date:'2026-11-04',instrument:'saxophone',kind:'lesson',minutes:25,focus:'  Long tones  ',note:' Bring the book '});
-  assert.deepEqual(saved,{subject:'music',date:'2026-11-04',instrument:'saxophone',kind:'lesson',minutes:25,songs:[],focus:'Long tones',note:'Bring the book'});
+  assert.deepEqual(saved,{v:1,subject:'music',date:'2026-11-04',instrument:'saxophone',kind:'lesson',minutes:25,songs:[],focus:'Long tones',note:'Bring the book'});
   assert.throws(()=>validate(entry('drums',10)),/Choose/);
   assert.throws(()=>validate(entry('piano',0)),/Choose/);
   assert.throws(()=>validate(entry('piano',181)),/Choose/);
@@ -63,7 +70,7 @@ test('a practice can be songs only, songs plus a note, but not empty',()=>{
   assert.throws(()=>validate({...entry('saxophone',20),songs:'song-saxophone-ragtime'}),/Choose the songs/);
 });
 test('songs are checked before they are saved',()=>{
-  assert.deepEqual(validate({subject:'song',instrument:'flute',title:'  Greensleeves ',archived:false}),{subject:'song',instrument:'flute',title:'Greensleeves',archived:false});
+  assert.deepEqual(validate({subject:'song',instrument:'flute',title:'  Greensleeves ',archived:false}),{v:1,subject:'song',instrument:'flute',title:'Greensleeves',archived:false});
   assert.throws(()=>validate({subject:'song',instrument:'drums',title:'Solo',archived:false}),/Choose/);
   assert.throws(()=>validate({subject:'song',instrument:'flute',title:'   ',archived:false}),/Choose a song name/);
   assert.throws(()=>validate({subject:'song',instrument:'flute',title:'x'.repeat(61),archived:false}),/Choose a song name/);
@@ -73,7 +80,7 @@ test('saxophone starts with its songs, and archiving or adding updates the bank'
   const start=songsFor(songBank([]),'saxophone');
   assert.deepEqual(start.map(song=>song.title),['In the Mood','Ragtime','Satin Doll']);
   assert.equal(songsFor(songBank([]),'piano').length,0);
-  const events=[
+  const events:StoredEvent[]=[
     {seq:1,entry_id:'song-saxophone-ragtime',operation:'save',payload:JSON.stringify({subject:'song',instrument:'saxophone',title:'Ragtime',archived:true})},
     {seq:2,entry_id:'song-1234abcd',operation:'save',payload:JSON.stringify({subject:'song',instrument:'flute',title:'Greensleeves',archived:false})},
     {seq:3,entry_id:'practice-1',operation:'save',payload:JSON.stringify({subject:'music',date:'2026-11-05',instrument:'flute',kind:'practice',minutes:10,songs:['song-1234abcd'],focus:'',note:''})}
@@ -82,5 +89,5 @@ test('saxophone starts with its songs, and archiving or adding updates the bank'
   assert.equal(bank.find(song=>song.id==='song-saxophone-ragtime').archived,true);
   assert.equal(songsFor(bank,'flute')[0].title,'Greensleeves');
   assert.equal(summarize(entries,'2026-11-05').minutes.flute,10);
-  assert.equal(summarizeMath(entries,'2026-11-05').totals[5],68);
+  assert.equal(summarizeMath(entries,'2026-11-05').books[5]!.total,68);
 });

@@ -5,7 +5,7 @@ Use `README.md` for architecture, scheduling rules, and recovery. The dashboard 
 - Viewing stays public. Saves, edits, removals, and catch-up confirmations require the one shared login. Do not add account signup, or treat rate limiting as authentication.
 - Never mark lessons 69–74 finished without a logged confirmation. Baseline complete lessons are 1–68.
 - Progress is per-lesson cumulative completion, not an additive ledger of fractions.
-- Keep projections in `public/math.js` shared with tests. Math 6 depends on Math 5's completion.
+- Keep projections and validation in `src/domain/`, shared by the page, Worker, and tests. Math 6 depends on Math 5's completion.
 - Keep D1 events append-only and R2 backups private. Never expose recovery endpoints publicly.
 - Run `npm run check` (unit + browser tests) before pushing. For manual checks, use `npm run pull:live` to mirror real data locally instead of inventing data. Never put test progress into the production database.
 - Do not commit `.dev.vars`, credentials, `.wrangler/`, backup exports, or private notes.

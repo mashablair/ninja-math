@@ -1,13 +1,18 @@
-import {BASE_DATE,TARGETS,today,pretty,addDays,weekday,summarize} from './math.js';
-import {summarize as summarizeEnglish,TARGET as ENGLISH_TARGET,BASE_DATE as ENGLISH_BASE} from './english.js';
-import {summarize as summarizeMusic,INSTRUMENTS,LESSON_MINUTES,practiceCalendar,songBank,songsFor} from './music.js';
+import {today,pretty,addDays,weekday} from '../domain/dates.ts';
+import {MATH,ENGLISH,MUSIC,SPORTS} from '../domain/student.ts';
+import {summarizePractice,practiceCalendar as calendarFor,songBank as bankFor,songsFor} from '../domain/subjects/practice.ts';
+import {summarize,summarizeEnglish} from './legacy.js';
 import * as mathCopy from './messages/math.js';
 import * as englishCopy from './messages/english.js';
-import {summarize as summarizeSports,ACTIVITIES,sportsCalendar} from './sports.js';
 import * as musicCopy from './messages/music.js';
 import * as sportsCopy from './messages/sports.js';
 import {celebrate,initCelebration} from './celebrate.js';
 const SUBJECTS=['math','english','music','sports'];
+const BASE_DATE=MATH.start, TARGETS={5:MATH.books[0].target,6:MATH.books[1].target}, ENGLISH_BASE=ENGLISH.start, ENGLISH_TARGET=ENGLISH.books[0].target;
+const INSTRUMENTS=MUSIC.items, ACTIVITIES=SPORTS.items, LESSON_MINUTES=MUSIC.lessons.minutes;
+const summarizeMusic=entries=>summarizePractice(MUSIC,entries), summarizeSports=entries=>summarizePractice(SPORTS,entries);
+const practiceCalendar=(entries,item,day)=>calendarFor(MUSIC,entries,item,day), sportsCalendar=(entries,item,day)=>calendarFor(SPORTS,entries,item,day);
+const songBank=entries=>bankFor(MUSIC,entries);
 const copy={math:mathCopy,english:englishCopy,music:musicCopy,sports:sportsCopy};
 const MASCOT={math:'/unicorn.svg',english:'/unicorn-english.svg',music:'/unicorn-music.svg',sports:'/ninja-running.webp'};
 const $=selector=>document.querySelector(selector);
@@ -405,7 +410,7 @@ async function addSong(){
 }
 async function setArchived(id,archived,button){
   const song=bank.find(item=>item.id===id);if(!song)return;
-  if(await saveSong(id,{instrument:song.instrument,title:song.title,archived},button)){if(archived)chosenSongs.delete(id);renderSongPicker();}
+  if(await saveSong(id,{instrument:song.item,title:song.title,archived},button)){if(archived)chosenSongs.delete(id);renderSongPicker();}
 }
 function editEntry(id){
   const entry=state.entries.find(item=>item.id===id);if(!entry)return;
