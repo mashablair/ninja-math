@@ -79,11 +79,17 @@ Server-side validation, same-origin browser requests, per-IP write throttling, l
 ## Validation
 
 ```sh
-npm test
-node --check public/app.js
+npm test            # unit tests: scheduling, progress, validation, login
+npm run test:e2e    # browser tests of every check-in flow (first time: npx playwright install chromium)
+npm run check       # both
+npm run pull:live   # replace the LOCAL database with a copy of the live check-ins
 ```
 
-Tests cover inclusive weekday math, linked dates, unknown catch-up work, skipped and unlogged days, cumulative partial lessons, weekend work, persistent completion dates, event corrections, invalid input, and the login that guards writes. Local browser QA covers saving partial work, editing to complete, skipped days, removal, journal persistence, and responsive layout.
+Unit tests cover inclusive weekday math, linked dates, unknown catch-up work, skipped and unlogged days, cumulative partial lessons, weekend work, persistent completion dates, event corrections, invalid input, and the login that guards writes. Browser tests (`tests/e2e/`, an iPad-sized Chromium) cover the login gate and the Math, English, Music, and Sports check-ins, including edit and remove. They start their own server on port 8790 with a fresh database in `.wrangler/e2e` and test-only credentials, so they never touch your local copy of real data or production.
+
+`pull:live` only reads the public `/api/state` and only writes with `--local`. Use it instead of inventing test data when checking something by hand.
+
+GitHub Actions runs both suites on every push and pull request. The Cloudflare build for `main` runs `npm test` before `wrangler deploy`, so a failing unit test stops the deploy.
 
 ## Future AI
 

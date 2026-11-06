@@ -1,5 +1,20 @@
 {
-  "name": "ninja-math", "version": "1.0.0", "private": true, "type": "module",
-  "scripts": {"dev":"wrangler dev", "deploy":"wrangler deploy", "test":"node --test tests/*.test.js", "db:local":"wrangler d1 migrations apply ninja-math --local", "db:remote":"wrangler d1 migrations apply ninja-math --remote"},
-  "devDependencies": {"wrangler":"^4.0.0"}
+  "name": "ninja-math",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "node --test tests/*.test.js",
+    "test:e2e": "playwright test",
+    "check": "npm test && npm run test:e2e",
+    "pull:live": "node scripts/pull-live.mjs",
+    "db:local": "wrangler d1 migrations apply ninja-math --local",
+    "db:remote": "wrangler d1 migrations apply ninja-math --remote"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.65.0",
+    "wrangler": "^4.0.0"
+  }
 }
