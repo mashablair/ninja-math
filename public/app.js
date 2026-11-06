@@ -1,6 +1,6 @@
 import {BASE_DATE,TARGETS,today,pretty,addDays,weekday,summarize} from './math.js';
 import {summarize as summarizeEnglish,TARGET as ENGLISH_TARGET,BASE_DATE as ENGLISH_BASE} from './english.js';
-import {summarize as summarizeMusic,INSTRUMENTS,practiceCalendar,songBank,songsFor} from './music.js';
+import {summarize as summarizeMusic,INSTRUMENTS,LESSON_MINUTES,practiceCalendar,songBank,songsFor} from './music.js';
 import * as mathCopy from './messages/math.js';
 import * as englishCopy from './messages/english.js';
 import * as musicCopy from './messages/music.js';
@@ -280,7 +280,8 @@ function syncFields(){
   $('#entry-context').hidden=editingSubject!=='english';
   $('#lesson-fields').hidden=music||status==='skipped';
   $('#entry-lesson').required=!music&&status!=='skipped';
-  $('#entry-minutes').required=music;
+  const teacher=music&&$('#entry-form').elements.kind.value==='lesson';
+  $('#minutes-field').hidden=teacher;$('#entry-minutes').required=music&&!teacher;
   const topic=editingSubject==='math'&&status!=='skipped';
   $('#topic-field').hidden=!topic;$('#entry-topic').required=topic;
   $('#amount-field').hidden=music||status!=='partial';
@@ -449,7 +450,8 @@ $('#entry-form').addEventListener('submit',async event=>{
   try{
     if(editingSubject==='music'){
       const instrument=pickedInstrument(), mine=new Set(songsFor(bank,instrument).map(song=>song.id));
-      const entry={subject:'music',date:$('#entry-date').value,instrument,kind:$('#entry-form').elements.kind.value,minutes:Number($('#entry-minutes').value),songs:[...chosenSongs].filter(id=>mine.has(id)),focus:$('#entry-focus').value,note:editingNote};
+      const kind=$('#entry-form').elements.kind.value;
+      const entry={subject:'music',date:$('#entry-date').value,instrument,kind,minutes:kind==='lesson'?LESSON_MINUTES:Number($('#entry-minutes').value),songs:[...chosenSongs].filter(id=>mine.has(id)),focus:$('#entry-focus').value,note:editingNote};
       if(!entry.songs.length&&!entry.focus.trim()) throw new Error('Choose a song or write what you practiced.');
       await mutate('save',editingId,entry);$('#entry-dialog').close();
       if(wasExisting) toast('Saved!'); else celebrateMusic(entry);
@@ -550,6 +552,7 @@ $('#song-chips').addEventListener('click',event=>{
   const archive=event.target.closest('[data-archive]');if(archive)setArchived(archive.dataset.archive,true,archive);
 });
 $('#song-archived').addEventListener('click',event=>{const back=event.target.closest('[data-unarchive]');if(back)setArchived(back.dataset.unarchive,false,back);});
+$$('#entry-form input[name=kind]').forEach(radio=>radio.addEventListener('change',syncFields));
 $('#song-save').addEventListener('click',addSong);
 $('#song-title').addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();addSong();}});
 $('#song-cancel').addEventListener('click',closeSongAdd);

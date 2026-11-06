@@ -2,6 +2,7 @@ import {today,addDays} from './schedule.js';
 export const INSTRUMENTS=[{id:'piano',name:'Piano'},{id:'flute',name:'Flute'},{id:'saxophone',name:'Saxophone'}];
 export const KINDS=['practice','lesson'];
 export const MAX_MINUTES=180;
+export const LESSON_MINUTES=30;
 export const MAX_SONG_TITLE=60;
 export const MAX_SONGS_PER_LOG=20;
 export const STARTING_SONGS=[
