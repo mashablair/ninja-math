@@ -105,6 +105,7 @@ main{max-width:1240px;margin:0 auto;padding:0 28px}
 #next-subtitle{margin:10px 0 18px;font-size:1.05rem}
 .checkin-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
 .music-actions{grid-template-columns:repeat(2,minmax(0,1fr))}
+.sports-actions{grid-template-columns:minmax(0,360px)}
 .music-today{display:flex;flex-direction:column;gap:10px;margin:14px 0 18px}
 .music-row{display:flex;align-items:center;gap:12px;background:var(--surface-2);border-radius:16px;padding:12px 14px}
 .music-row div{flex:1;min-width:0}
@@ -145,7 +146,7 @@ main{max-width:1240px;margin:0 auto;padding:0 28px}
 .hm-legend > span:first-child{margin-right:2px}
 .hm-legend > span:nth-child(7){margin:0 14px 0 2px}
 .hm-key{display:inline-flex;align-items:center;gap:5px;margin-right:12px}
-#music-heading{font-size:2rem;margin-top:6px}
+#music-heading,#sports-heading{font-size:2rem;margin-top:6px}
 .checkin-card > p.muted{margin:10px 0 0}
 .history-symbol.lesson{background:var(--tint);color:var(--accent-text);font-size:1.4rem}
 .action{border:0;border-radius:20px;min-height:110px;padding:16px 18px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left}
@@ -317,6 +318,7 @@ fieldset input:focus-visible+span{outline:3px solid var(--accent-text);outline-o
 .pick-field{margin:14px 0}
 .pick-field legend{margin-bottom:8px}
 .instrument-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.instrument-card span{text-align:center}
 .instrument-card,.kind-card,.song-chip{position:relative}
 .instrument-card span{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 6px 12px;border:2px solid var(--line);border-radius:18px;background:var(--surface);font-weight:800;cursor:pointer}
 .instrument-card img{width:64px;height:64px;border-radius:16px;background:color-mix(in srgb,var(--a) 30%,#fff)}

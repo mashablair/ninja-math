@@ -3,10 +3,13 @@ import {summarize as summarizeEnglish,TARGET as ENGLISH_TARGET,BASE_DATE as ENGL
 import {summarize as summarizeMusic,INSTRUMENTS,LESSON_MINUTES,practiceCalendar,songBank,songsFor} from './music.js';
 import * as mathCopy from './messages/math.js';
 import * as englishCopy from './messages/english.js';
+import {summarize as summarizeSports,ACTIVITIES,sportsCalendar} from './sports.js';
 import * as musicCopy from './messages/music.js';
+import * as sportsCopy from './messages/sports.js';
 import {celebrate,initCelebration} from './celebrate.js';
-const copy={math:mathCopy,english:englishCopy,music:musicCopy};
-const MASCOT={math:'/unicorn.svg',english:'/unicorn-english.svg',music:'/unicorn-music.svg'};
+const SUBJECTS=['math','english','music','sports'];
+const copy={math:mathCopy,english:englishCopy,music:musicCopy,sports:sportsCopy};
+const MASCOT={math:'/unicorn.svg',english:'/unicorn-english.svg',music:'/unicorn-music.svg',sports:'/ninja-running.webp'};
 const $=selector=>document.querySelector(selector);
 const $$=selector=>[...document.querySelectorAll(selector)];
 const esc=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -16,6 +19,7 @@ const finishedIn=(s,book)=>s.progress[book].filter(p=>p===1).length;
 const percentOf=(s,book)=>s.totals[book]===120?100:Math.min(99,Math.round(s.totals[book]*100/120));
 const percentOfTotal=total=>total===120?100:Math.min(99,Math.round(total*100/120));
 const instrumentName=id=>INSTRUMENTS.find(item=>item.id===id)?.name||'Music';
+const activityName=id=>ACTIVITIES.find(item=>item.id===id)?.name||'Sports';
 const practiceText=entry=>[...(entry.songs||[]).map(id=>bank.find(song=>song.id===id)?.title).filter(Boolean),entry.focus].filter(Boolean).join(' · ');
 const ICONS={
   complete:'<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
@@ -23,8 +27,8 @@ const ICONS={
   skipped:'<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>',
   lesson:'♪'
 };
-let state={entries:[],revision:0}, editingNote='', bank=[], chosenSongs=new Set(), songEditing=false, summary, englishSummary, musicSummary, selectedBook=5, bookChosen=false, ready=false, editingId=null, editingSubject='math', editingExisting=false, deleteId=null, toastTimer, justEarned=null, subject='math', authed=false, pending=null;
-try{const saved=localStorage.getItem('ninja-subject');if(['math','english','music'].includes(saved))subject=saved;}catch(error){}
+let state={entries:[],revision:0}, editingNote='', bank=[], chosenSongs=new Set(), songEditing=false, summary, englishSummary, musicSummary, sportsSummary, selectedBook=5, bookChosen=false, ready=false, editingId=null, editingSubject='math', editingExisting=false, deleteId=null, toastTimer, justEarned=null, subject='math', authed=false, pending=null;
+try{const saved=localStorage.getItem('ninja-subject');if(SUBJECTS.includes(saved))subject=saved;}catch(error){}
 
 function toast(message){$('#toast').textContent=message;$('#toast').hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').hidden=true,4500);}
 function syncAccount(){
@@ -47,10 +51,10 @@ async function refreshAuth(){
   catch{authed=false;}
   syncAccount();
 }
-function availability(){ $$('[data-status],[data-en-status],#music-practice,#music-lesson,#add-entry,#export,#catchup-button').forEach(b=>b.disabled=!ready); }
+function availability(){ $$('[data-status],[data-en-status],#music-practice,#music-lesson,#sports-log,#add-entry,#export,#catchup-button').forEach(b=>b.disabled=!ready); }
 function entriesFor(name){return state.entries.filter(entry=>name==='math'?isMath(entry):entry.subject===name);}
 function setSubject(next){
-  subject=['math','english','music'].includes(next)?next:'math';
+  subject=SUBJECTS.includes(next)?next:'math';
   try{localStorage.setItem('ninja-subject',subject);}catch(error){}
   $$('[data-subject]').forEach(button=>{const on=button.dataset.subject===subject;button.classList.toggle('selected',on);button.setAttribute('aria-pressed',String(on));});
   $$('[data-subject-panel]').forEach(panel=>{panel.hidden=panel.dataset.subjectPanel!==subject;});
@@ -95,14 +99,15 @@ function render(){
   summary=summarize(state.entries);
   englishSummary=summarizeEnglish(state.entries);
   musicSummary=summarizeMusic(state.entries);
+  sportsSummary=summarizeSports(state.entries);
   bank=songBank(state.entries);
   if(!bookChosen) setBook(summary.active,false);
   const day=today();
   $('#today-label').textContent=new Intl.DateTimeFormat('en-US',{weekday:'long',month:'long',day:'numeric',timeZone:'America/New_York'}).format(new Date());
-  const activeSummary=subject==='english'?englishSummary:subject==='music'?musicSummary:summary;
+  const activeSummary={math:summary,english:englishSummary,music:musicSummary,sports:sportsSummary}[subject];
   const last=entriesFor(subject).filter(entry=>entry.date===day).at(-1);
   $('#daily-message').textContent=copy[subject].dailyMessage(day,{loggedToday:activeSummary.loggedToday,lastStatus:last?.status});
-  renderMath(day);renderEnglish(day);renderMusic(day);renderPlanning();renderEnglishPlanning();renderMusicPlanning();renderHistory();
+  renderMath(day);renderEnglish(day);renderMusic(day);renderSports(day);renderPlanning();renderEnglishPlanning();renderMusicPlanning();renderSportsPlanning();renderHistory();
 }
 function renderMath(day){
   const active=summary.active;
@@ -156,36 +161,52 @@ function renderEnglish(day){
 function renderMusic(day){
   const todayLogs=musicSummary.entries.filter(entry=>entry.date===day);
   $('#music-today').innerHTML=todayLogs.length?todayLogs.map(entry=>`<div class="music-row"><div><strong>${esc(instrumentName(entry.instrument))}</strong><span>${entry.kind==='lesson'?'Lesson with teacher':'Practice'} · ${entry.minutes} min</span>${practiceText(entry)?`<p>${esc(practiceText(entry))}</p>`:''}</div><button type="button" data-edit="${esc(entry.id)}">Edit</button></div>`).join(''):'<p class="muted">Nothing saved for today yet. Add a practice when you’re ready.</p>';
-  $('#music-minutes').innerHTML=INSTRUMENTS.map(item=>`<div><span>${item.name}</span><strong>${musicSummary.minutes[item.id]} min</strong></div>`).join('');
+  $('#music-minutes').innerHTML=minutesList(INSTRUMENTS,musicSummary.minutes);
   const week=weekStrip(day,date=>state.entries.filter(entry=>entry.subject==='music'&&entry.date===date),'Music logged');
   $('#music-week-strip').innerHTML=week.html;
   $('#music-week-message').textContent=week.worked?`${week.worked} day${week.worked===1?'':'s'} of music this week. Nice work!`:'Your practice will show up here.';
-  renderPracticeCalendars(day);
+  renderCalendars('music',day);
 }
+function renderSports(day){
+  const todayLogs=sportsSummary.entries.filter(entry=>entry.date===day);
+  $('#sports-today').innerHTML=todayLogs.length?todayLogs.map(entry=>`<div class="music-row"><div><strong>${esc(activityName(entry.activity))}</strong><span>${entry.minutes} min</span>${entry.focus?`<p>${esc(entry.focus)}</p>`:''}</div><button type="button" data-edit="${esc(entry.id)}">Edit</button></div>`).join(''):'<p class="muted">Nothing saved for today yet. Add what you did when you’re ready.</p>';
+  $('#sports-minutes').innerHTML=minutesList(ACTIVITIES,sportsSummary.minutes);
+  const week=weekStrip(day,date=>state.entries.filter(entry=>entry.subject==='sports'&&entry.date===date),'Sports logged');
+  $('#sports-week-strip').innerHTML=week.html;
+  $('#sports-week-message').textContent=week.worked?`${week.worked} day${week.worked===1?'':'s'} of moving this week. Nice work!`:'Your sports days will show up here.';
+  renderCalendars('sports',day);
+}
+const minutesList=(items,minutes)=>items.map(item=>`<div><span>${item.name}</span><strong>${minutes[item.id]} min</strong></div>`).join('');
 const longDay=date=>new Intl.DateTimeFormat('en-US',{weekday:'long',month:'long',day:'numeric',timeZone:'UTC'}).format(new Date(date+'T12:00:00Z'));
 const monthLabel=month=>new Intl.DateTimeFormat('en-US',{month:'short',timeZone:'UTC'}).format(new Date(month+'-15T12:00:00Z'));
 function dayLabel(cell,name){
   if(!cell.entries.length) return `${longDay(cell.date)}: no ${name.toLowerCase()} saved`;
   return `${longDay(cell.date)}: ${cell.minutes} min of ${name.toLowerCase()}${cell.lesson?', with a lesson':''}`;
 }
-function renderPracticeCalendars(day){
-  $('#practice-calendars').innerHTML=INSTRUMENTS.map(item=>{
-    const cal=practiceCalendar(state.entries,item.id,day);
+const CALENDARS={
+  music:{box:'#practice-calendars',items:INSTRUMENTS,calendar:practiceCalendar,line:entry=>`${entry.kind==='lesson'?'Lesson with teacher':'Practice'} · ${entry.minutes} min${practiceText(entry)?` · ${esc(practiceText(entry))}`:''}`},
+  sports:{box:'#sports-calendars',items:ACTIVITIES,calendar:sportsCalendar,line:entry=>`${entry.minutes} min${entry.focus?` · ${esc(entry.focus)}`:''}`}
+};
+function renderCalendars(name,day){
+  const {box,items,calendar}=CALENDARS[name];
+  $(box).innerHTML=items.map(item=>{
+    const cal=calendar(state.entries,item.id,day);
     const months=cal.months.map(month=>`<span>${month?monthLabel(month):''}</span>`).join('');
-    const cells=cal.weeks.flat().map(cell=>cell.future?'<span class="hm-cell future"></span>':`<button type="button" class="hm-cell l${cell.level}${cell.lesson?' hm-lesson':''}${cell.date===day?' current':''}" data-instrument="${item.id}" data-date="${cell.date}" aria-label="${esc(dayLabel(cell,item.name))}"></button>`).join('');
+    const cells=cal.weeks.flat().map(cell=>cell.future?'<span class="hm-cell future"></span>':`<button type="button" class="hm-cell l${cell.level}${cell.lesson?' hm-lesson':''}${cell.date===day?' current':''}" data-item="${item.id}" data-date="${cell.date}" aria-label="${esc(dayLabel(cell,item.name))}"></button>`).join('');
     const caption=cal.days?`${cal.days} day${cal.days===1?'':'s'} of ${item.name.toLowerCase()} in the last year`:`Your ${item.name.toLowerCase()} days will show up here.`;
     return `<div class="practice-instrument"><div class="practice-top"><div class="practice-name"><img src="/ninja-${item.id}.webp" alt="" width="56" height="56"><strong>${item.name}</strong></div><span class="muted">${caption}</span></div><div class="heatmap"><div class="hm-days" aria-hidden="true"><span></span><span>Mon</span><span></span><span>Wed</span><span></span><span>Fri</span><span></span></div><div class="hm-scroll"><div class="hm-months" aria-hidden="true">${months}</div><div class="hm-grid">${cells}</div></div></div><p class="hm-detail" aria-live="polite" hidden></p></div>`;
   }).join('');
-  $$('#practice-calendars .hm-scroll').forEach(el=>el.scrollLeft=el.scrollWidth);
+  $$(`${box} .hm-scroll`).forEach(el=>el.scrollLeft=el.scrollWidth);
 }
-function showPracticeDay(button){
-  const item=INSTRUMENTS.find(i=>i.id===button.dataset.instrument);
-  const cell=practiceCalendar(state.entries,item.id,today()).weeks.flat().find(c=>c.date===button.dataset.date);
-  const box=button.closest('.practice-instrument'), detail=box.querySelector('.hm-detail');
-  $$('#practice-calendars .hm-cell.selected').forEach(el=>el.classList.remove('selected'));
+function showCalendarDay(name,button){
+  const {box,items,calendar,line}=CALENDARS[name];
+  const item=items.find(i=>i.id===button.dataset.item);
+  const cell=calendar(state.entries,item.id,today()).weeks.flat().find(c=>c.date===button.dataset.date);
+  const detail=button.closest('.practice-instrument').querySelector('.hm-detail');
+  $$(`${box} .hm-cell.selected`).forEach(el=>el.classList.remove('selected'));
   button.classList.add('selected');
   detail.innerHTML=cell.entries.length
-    ?`<strong>${longDay(cell.date)}</strong>${cell.entries.map(entry=>`<span>${entry.kind==='lesson'?'Lesson with teacher':'Practice'} · ${entry.minutes} min${practiceText(entry)?` · ${esc(practiceText(entry))}`:''}</span>`).join('')}`
+    ?`<strong>${longDay(cell.date)}</strong>${cell.entries.map(entry=>`<span>${line(entry)}</span>`).join('')}`
     :`<strong>${longDay(cell.date)}</strong><span>No ${item.name.toLowerCase()} saved for this day.</span>`;
   detail.hidden=false;
 }
@@ -257,36 +278,42 @@ function renderEnglishPlanning(){
   $('#en-timeline-note').textContent=complete?`English 5 was finished on ${pretty(projected,true)}.`:`At this pace English 5 wraps up ${pretty(projected,true)}. The original target, ${pretty(target,true)}, is the weekday plan from November 4, 2026.`;
 }
 function renderMusicPlanning(){
-  $('#music-week-list').innerHTML=INSTRUMENTS.map(item=>`<div><span>${item.name}</span><strong>${musicSummary.minutes[item.id]} min</strong></div>`).join('');
+  $('#music-week-list').innerHTML=minutesList(INSTRUMENTS,musicSummary.minutes);
   const lessons=[...musicSummary.lessons].reverse();
   $('#music-lesson-list').innerHTML=lessons.length?lessons.map(entry=>`<article class="history-item"><span class="history-symbol lesson">${ICONS.lesson}</span><div class="history-body"><h3>${esc(instrumentName(entry.instrument))} · ${entry.minutes} min</h3><small>${pretty(entry.date,true)}</small>${practiceText(entry)?`<p>${esc(practiceText(entry))}</p>`:''}</div></article>`).join(''):'<p class="muted">Teacher lessons will show up here.</p>';
 }
+function renderSportsPlanning(){
+  $('#sports-week-list').innerHTML=minutesList(ACTIVITIES,sportsSummary.minutes);
+}
 function renderHistory(){
   const list=entriesFor(subject);
-  const notes={math:'Lessons 1–68 are your starting progress and don’t have individual check-ins. Edits stay in the private backup history.',english:'Lessons 1–22 are your starting progress and don’t have individual check-ins. Edits stay in the private backup history.',music:'Each practice and each teacher lesson is saved on its own. Edits stay in the private backup history.'};
+  const notes={math:'Lessons 1–68 are your starting progress and don’t have individual check-ins. Edits stay in the private backup history.',english:'Lessons 1–22 are your starting progress and don’t have individual check-ins. Edits stay in the private backup history.',music:'Each practice and each teacher lesson is saved on its own. Edits stay in the private backup history.',sports:'Each workout or adventure is saved on its own. Edits stay in the private backup history.'};
+  const empty={math:['Your story starts here.','Log a lesson, a little progress, or a day off. This is your space.'],english:['Your English story starts here.','Log a lesson, a little progress, or a day off. This is your space.'],music:['Your music starts here.','Log a practice or a lesson with your teacher. This is your space.'],sports:['Your sports story starts here.','Log a workout, a run, a ride, or a day on the water. This is your space.']}[subject];
   $('#history-note').textContent=notes[subject];
   $('#history-list').innerHTML=list.length?[...list].reverse().map(entry=>{
+    if(entry.subject==='sports') return `<article class="history-item"><span class="history-symbol complete">${ICONS.complete}</span><div class="history-body"><h3>${esc(activityName(entry.activity))} · ${entry.minutes} min</h3><small>${pretty(entry.date,true)}</small>${entry.focus?`<p>${esc(entry.focus)}</p>`:''}${entry.note?`<p>${esc(entry.note)}</p>`:''}</div><div class="history-tools"><button data-edit="${esc(entry.id)}" aria-label="Edit check-in from ${pretty(entry.date)}">Edit</button><button data-delete="${esc(entry.id)}" aria-label="Remove check-in from ${pretty(entry.date)}">Remove</button></div></article>`;
     if(entry.subject==='music') return `<article class="history-item"><span class="history-symbol ${entry.kind==='lesson'?'lesson':'complete'}">${entry.kind==='lesson'?ICONS.lesson:ICONS.complete}</span><div class="history-body"><h3>${esc(instrumentName(entry.instrument))} · ${entry.kind==='lesson'?'Lesson with teacher':'Practice'} · ${entry.minutes} min</h3><small>${pretty(entry.date,true)}</small>${practiceText(entry)?`<p>${esc(practiceText(entry))}</p>`:''}${entry.note?`<p>${esc(entry.note)}</p>`:''}</div><div class="history-tools"><button data-edit="${esc(entry.id)}" aria-label="Edit check-in from ${pretty(entry.date)}">Edit</button><button data-delete="${esc(entry.id)}" aria-label="Remove check-in from ${pretty(entry.date)}">Remove</button></div></article>`;
     const name=entry.subject==='english'?'English 5':`Math ${entry.book}`;
     return `<article class="history-item"><span class="history-symbol ${entry.status}">${ICONS[entry.status]||''}</span><div class="history-body"><h3>${entry.status==='skipped'?'A day to recharge':`${name} · Lesson ${entry.lesson} · ${entry.status==='complete'?'Finished!':`${entry.progress*100}% done`}`}</h3><small>${pretty(entry.date,true)}${entry.reason?' · '+esc(entry.reason):''}</small>${entry.topic?`<p>${esc(entry.topic)}</p>`:''}${entry.note?`<p>${esc(entry.note)}</p>`:''}</div><div class="history-tools"><button data-edit="${esc(entry.id)}" aria-label="Edit check-in from ${pretty(entry.date)}">Edit</button><button data-delete="${esc(entry.id)}" aria-label="Remove check-in from ${pretty(entry.date)}">Remove</button></div></article>`;
-  }).join(''):`<div class="empty"><img src="/peaceful-ninja.png" alt="" width="72" height="72"><h2>${subject==='music'?'Your music starts here.':subject==='english'?'Your English story starts here.':'Your story starts here.'}</h2><p>${subject==='music'?'Log a practice or a lesson with your teacher. This is your space.':'Log a lesson, a little progress, or a day off. This is your space.'}</p></div>`;
+  }).join(''):`<div class="empty"><img src="/peaceful-ninja.png" alt="" width="72" height="72"><h2>${empty[0]}</h2><p>${empty[1]}</p></div>`;
 }
 
 function syncFields(){
-  const music=editingSubject==='music', status=$('#entry-status').value;
+  const music=editingSubject==='music', sports=editingSubject==='sports', daily=music||sports, status=$('#entry-status').value;
   $('#music-fields').hidden=!music;
-  $('#status-field').hidden=music;
-  $('#book-field').hidden=music||editingSubject==='english';
+  $('#sports-fields').hidden=!sports;$('#sport-minutes').required=sports;
+  $('#status-field').hidden=daily;
+  $('#book-field').hidden=daily||editingSubject==='english';
   $('#entry-context').hidden=editingSubject!=='english';
-  $('#lesson-fields').hidden=music||status==='skipped';
-  $('#entry-lesson').required=!music&&status!=='skipped';
+  $('#lesson-fields').hidden=daily||status==='skipped';
+  $('#entry-lesson').required=!daily&&status!=='skipped';
   const teacher=music&&$('#entry-form').elements.kind.value==='lesson';
   $('#minutes-field').hidden=teacher;$('#entry-minutes').required=music&&!teacher;
   const topic=editingSubject==='math'&&status!=='skipped';
   $('#topic-field').hidden=!topic;$('#entry-topic').required=topic;
-  $('#amount-field').hidden=music||status!=='partial';
-  $('#partial-hint').hidden=music||status!=='partial';
-  $('#reason-field').hidden=music;
+  $('#amount-field').hidden=daily||status!=='partial';
+  $('#partial-hint').hidden=daily||status!=='partial';
+  $('#reason-field').hidden=daily;
 }
 function openEntry(status='complete',book=summary.active,lesson=summary.nextLesson,existing=null){
   if(!ready)return;
@@ -333,6 +360,18 @@ function openMusic(existing=null,kind='practice'){
   closeSongAdd();renderSongPicker();
   syncFields();$('#entry-dialog').showModal();
 }
+function openSports(existing=null){
+  if(!ready)return;
+  editingSubject='sports';editingExisting=!!existing;editingId=existing?.id||crypto.randomUUID();
+  $('#entry-form').reset();$('#form-error').textContent='';
+  $('#dialog-title').textContent=existing?'Make your sports note just right.':'How did you move today?';
+  $('#entry-date').min=BASE_DATE;$('#entry-date').max=today();$('#entry-date').value=existing?.date||today();
+  $('#entry-form').elements.activity.value=existing?.activity||sportsSummary.entries.at(-1)?.activity||'gym';
+  $('#sport-minutes').value=existing?.minutes||30;
+  $('#sport-focus').value=existing?.focus||'';
+  editingNote=existing?.note||'';
+  syncFields();$('#entry-dialog').showModal();
+}
 const pickedInstrument=()=>$('#entry-form').elements.instrument.value;
 function renderSongPicker(){
   const songs=songsFor(bank,pickedInstrument());
@@ -371,6 +410,7 @@ async function setArchived(id,archived,button){
 function editEntry(id){
   const entry=state.entries.find(item=>item.id===id);if(!entry)return;
   if(entry.subject==='music') openMusic(entry);
+  else if(entry.subject==='sports') openSports(entry);
   else if(entry.subject==='english') openEnglish(entry.status,entry.lesson,entry);
   else openEntry(entry.status,entry.book,entry.lesson,entry);
 }
@@ -400,6 +440,14 @@ function celebrateMusic(entry){
     title:entry.kind==='lesson'?`${name} lesson saved!`:`${name} practice saved!`,
     message:musicCopy.celebrateMessage(),
     mascot:MASCOT.music
+  });
+}
+function celebrateSports(entry){
+  celebrate({
+    sticker:entry.minutes,
+    title:`${activityName(entry.activity)} saved!`,
+    message:sportsCopy.celebrateMessage(),
+    mascot:`/ninja-${entry.activity}.webp`
   });
 }
 
@@ -435,11 +483,13 @@ $('#history-list').addEventListener('click',event=>{
   if(edit) requireLogin(()=>editEntry(edit.dataset.edit));
   if(remove) requireLogin(()=>{deleteId=remove.dataset.delete;$('#delete-error').textContent='';$('#delete-dialog').showModal();});
 });
-$('#practice-calendars').addEventListener('click',event=>{const cell=event.target.closest('button.hm-cell');if(cell)showPracticeDay(cell);});
-$('#music-today').addEventListener('click',event=>{const edit=event.target.closest('[data-edit]');if(edit)requireLogin(()=>editEntry(edit.dataset.edit));});
+$('#practice-calendars').addEventListener('click',event=>{const cell=event.target.closest('button.hm-cell');if(cell)showCalendarDay('music',cell);});
+$('#sports-calendars').addEventListener('click',event=>{const cell=event.target.closest('button.hm-cell');if(cell)showCalendarDay('sports',cell);});
+$$('#music-today,#sports-today').forEach(box=>box.addEventListener('click',event=>{const edit=event.target.closest('[data-edit]');if(edit)requireLogin(()=>editEntry(edit.dataset.edit));}));
 $$('.close').forEach(button=>button.addEventListener('click',()=>button.closest('dialog').close()));
 $('#entry-status').addEventListener('change',syncFields);
-$('#add-entry').addEventListener('click',()=>requireLogin(()=>{if(subject==='music')openMusic();else if(subject==='english')openEnglish();else openEntry();}));
+$('#add-entry').addEventListener('click',()=>requireLogin(()=>{if(subject==='music')openMusic();else if(subject==='sports')openSports();else if(subject==='english')openEnglish();else openEntry();}));
+$('#sports-log').addEventListener('click',()=>requireLogin(()=>openSports()));
 $('#music-practice').addEventListener('click',()=>requireLogin(()=>openMusic(null,'practice')));
 $('#music-lesson').addEventListener('click',()=>requireLogin(()=>openMusic(null,'lesson')));
 $('#refresh').addEventListener('click',load);
@@ -455,6 +505,12 @@ $('#entry-form').addEventListener('submit',async event=>{
       if(!entry.songs.length&&!entry.focus.trim()) throw new Error('Choose a song or write what you practiced.');
       await mutate('save',editingId,entry);$('#entry-dialog').close();
       if(wasExisting) toast('Saved!'); else celebrateMusic(entry);
+      return;
+    }
+    if(editingSubject==='sports'){
+      const entry={subject:'sports',date:$('#entry-date').value,activity:$('#entry-form').elements.activity.value,minutes:Number($('#sport-minutes').value),focus:$('#sport-focus').value,note:editingNote};
+      await mutate('save',editingId,entry);$('#entry-dialog').close();
+      if(wasExisting) toast('Saved!'); else celebrateSports(entry);
       return;
     }
     if(editingSubject==='english'){
@@ -532,6 +588,7 @@ function initTweaks(){
   $('#preview-celebration').addEventListener('click',()=>{
     $('#tweaks-dialog').close();
     if(subject==='music'){celebrate({sticker:'♪',title:'This is what practice looks like!',message:'Log a practice to earn the real thing.',mascot:MASCOT.music});return;}
+    if(subject==='sports'){celebrate({sticker:'★',title:'This is what moving looks like!',message:'Log a workout or an adventure to earn the real thing.',mascot:MASCOT.sports});return;}
     if(subject==='english'){
       const pct=englishSummary?percentOfTotal(englishSummary.total):18;
       celebrate({sticker:englishSummary?.nextLesson||23,title:'This is what finishing looks like!',message:'Finish a lesson to earn the real thing.',label:'English 5',percent:pct,count:englishSummary?`${englishSummary.progress.filter(part=>part===1).length} of 120 lessons`:'',mascot:MASCOT.english});
@@ -545,6 +602,7 @@ function initTweaks(){
 }
 
 $('#instrument-cards').innerHTML=INSTRUMENTS.map(item=>`<label class="instrument-card"><input type="radio" name="instrument" value="${item.id}"><span><img src="/ninja-${item.id}.webp" alt="" width="64" height="64">${item.name}</span></label>`).join('');
+$('#activity-cards').innerHTML=ACTIVITIES.map(item=>`<label class="instrument-card"><input type="radio" name="activity" value="${item.id}"><span><img src="/ninja-${item.id}.webp" alt="" width="64" height="64">${item.name}</span></label>`).join('');
 $('#instrument-cards').addEventListener('change',()=>{chosenSongs.clear();songEditing=false;closeSongAdd();renderSongPicker();});
 $('#song-chips').addEventListener('change',event=>{const box=event.target.closest('input[type=checkbox]');if(!box)return;if(box.checked)chosenSongs.add(box.value);else chosenSongs.delete(box.value);});
 $('#song-chips').addEventListener('click',event=>{

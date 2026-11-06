@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#fbf8f4">
 <meta name="color-scheme" content="light dark">
-<meta name="description" content="A little progress, a little magic. Ninja’s math, English, and music.">
+<meta name="description" content="A little progress, a little magic. Ninja’s math, English, music, and sports.">
 <title>Ninja · My Journey</title>
 <link rel="icon" href="/peaceful-ninja.png" type="image/png">
 <link rel="apple-touch-icon" href="/peaceful-ninja.png">
@@ -49,6 +49,7 @@
     <button type="button" data-subject="math" class="selected" aria-pressed="true">Math</button>
     <button type="button" data-subject="english" aria-pressed="false">English</button>
     <button type="button" data-subject="music" aria-pressed="false">Music</button>
+    <button type="button" data-subject="sports" aria-pressed="false">Sports</button>
   </div>
   <div data-subject-panel="math">
   <div class="dashboard-grid">
@@ -208,6 +209,44 @@
     </aside>
   </div>
   </div>
+
+  <div data-subject-panel="sports" hidden>
+  <div class="dashboard-grid">
+    <div class="main-column">
+      <section class="card checkin-card" aria-labelledby="sports-heading">
+        <div class="section-top"><span class="label">Today’s sports</span></div>
+        <h2 id="sports-heading">How did you move?</h2>
+        <p class="muted">Gym, running, mountain biking, snorkeling, or water skiing. Every bit counts.</p>
+        <div id="sports-today" class="music-today"></div>
+        <div class="checkin-actions sports-actions">
+          <button id="sports-log" class="action complete" type="button" disabled>
+            <span class="action-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+            <strong>I moved!</strong><small>Save what you did</small>
+          </button>
+        </div>
+      </section>
+      <section class="card practice-card" aria-labelledby="sports-calendar-heading">
+        <h3 id="sports-calendar-heading">My sports calendar</h3>
+        <p class="muted">Each square is a day. More minutes make it darker. Tap a square to see what you did.</p>
+        <div id="sports-calendars" class="practice-calendars"></div>
+        <div class="hm-legend" aria-hidden="true">
+          <span>Less</span><i class="hm-cell"></i><i class="hm-cell l1"></i><i class="hm-cell l2"></i><i class="hm-cell l3"></i><i class="hm-cell l4"></i><span>More</span>
+        </div>
+      </section>
+    </div>
+    <aside class="side-column">
+      <section class="card overall-card">
+        <h3>This week</h3>
+        <div id="sports-minutes" class="music-minutes"></div>
+      </section>
+      <section class="card week-card">
+        <h3>Days with sports</h3>
+        <div id="sports-week-strip" class="week-strip"></div>
+        <p id="sports-week-message" class="muted"></p>
+      </section>
+    </aside>
+  </div>
+  </div>
 </section>
 
 <section id="planning" hidden>
@@ -220,6 +259,7 @@
     <button type="button" data-subject="math" class="selected" aria-pressed="true">Math</button>
     <button type="button" data-subject="english" aria-pressed="false">English</button>
     <button type="button" data-subject="music" aria-pressed="false">Music</button>
+    <button type="button" data-subject="sports" aria-pressed="false">Sports</button>
   </div>
   <div class="history-toolbar"><button id="export" class="secondary" disabled>Download progress</button></div>
   <div data-subject-panel="math">
@@ -251,6 +291,13 @@
       <div id="music-lesson-list"></div>
     </section>
   </div>
+  <div data-subject-panel="sports" hidden>
+    <section class="card">
+      <h2>This week</h2>
+      <div id="sports-week-list" class="music-minutes"></div>
+      <p class="goal-foot">Minutes reset with the new week. A day with no log stays empty.</p>
+    </section>
+  </div>
   <p class="small muted">Anyone with the link can look at this page. Saving a check-in needs the shared login.</p>
 </section>
 
@@ -264,6 +311,7 @@
     <button type="button" data-subject="math" class="selected" aria-pressed="true">Math</button>
     <button type="button" data-subject="english" aria-pressed="false">English</button>
     <button type="button" data-subject="music" aria-pressed="false">Music</button>
+    <button type="button" data-subject="sports" aria-pressed="false">Sports</button>
   </div>
   <div class="history-toolbar"><button id="add-entry" class="primary" disabled>+ Add a check-in</button></div>
   <div id="history-list"></div>
@@ -297,6 +345,11 @@
       <p id="song-error" class="form-error" role="alert"></p>
       <input id="entry-focus" maxlength="200" placeholder="Anything else? e.g. scales, long tones" aria-label="Anything else you worked on">
     </fieldset>
+  </div>
+  <div id="sports-fields" hidden>
+    <fieldset class="pick-field"><legend>What did you do?</legend><div id="activity-cards" class="instrument-cards"></div></fieldset>
+    <label>Minutes<input type="number" id="sport-minutes" min="1" max="300" step="1" inputmode="numeric"></label>
+    <label>Anything to remember? <span class="optional">Optional</span><input id="sport-focus" maxlength="200" placeholder="e.g. 2 miles, leg day, saw a turtle"></label>
   </div>
   <p id="partial-hint" class="small muted">Choose the total completed, including earlier work on this lesson.</p>
   <label id="reason-field">Anything get in the way? <span class="optional">Optional</span><select id="entry-reason"><option value="">No reason needed</option><option>Needed help</option><option>Ran out of time</option><option>Needed a rest</option><option>Other plans</option><option>Something else</option></select></label>

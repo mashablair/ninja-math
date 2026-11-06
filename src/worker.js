@@ -1,6 +1,7 @@
 import { BASE_DATE, today, materialize } from '../public/math.js';
 import { BASE_DATE as ENGLISH_BASE, LEVEL } from '../public/english.js';
 import { INSTRUMENTS, KINDS, MAX_MINUTES, MAX_SONG_TITLE, MAX_SONGS_PER_LOG } from '../public/music.js';
+import { ACTIVITIES, MAX_SPORT_MINUTES } from '../public/sports.js';
 import { SESSION_MS, clearSessionCookie, credentialTag, readSession, sameSecret, sessionCookie, signSession } from './auth.js';
 const headers={'Content-Type':'application/json','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'};
 const json=(data,status=200,extra)=>{const h=new Headers(headers);if(extra)for(const [key,value] of Object.entries(extra))h.set(key,value);return new Response(JSON.stringify(data),{status,headers:h});};
@@ -19,6 +20,14 @@ function lessonEntry(entry,subject,earliest) {
 export function validate(entry) {
   if(!entry||typeof entry!=='object'||Array.isArray(entry)) throw new Error('Choose a real date from November 3, 2026 through today.');
   if(entry.subject==='english') return {level:LEVEL,...lessonEntry(entry,'english',ENGLISH_BASE)};
+  if(entry.subject==='sports') {
+    assertDate(entry.date,BASE_DATE);
+    if(!ACTIVITIES.some(item=>item.id===entry.activity)) throw new Error('Choose one of the sports.');
+    if(!Number.isInteger(entry.minutes)||entry.minutes<1||entry.minutes>MAX_SPORT_MINUTES) throw new Error(`Choose the minutes you moved, from 1 to ${MAX_SPORT_MINUTES}.`);
+    if(typeof entry.focus!=='string'||entry.focus.length>200) throw new Error('Keep what you did under 200 characters.');
+    if(typeof entry.note!=='string'||entry.note.length>500) throw new Error('Keep notes under 500 characters.');
+    return {subject:'sports',date:entry.date,activity:entry.activity,minutes:entry.minutes,focus:entry.focus.trim(),note:entry.note.trim()};
+  }
   if(entry.subject==='song') {
     if(!INSTRUMENTS.some(item=>item.id===entry.instrument)) throw new Error('Choose piano, flute, or saxophone for this song.');
     if(typeof entry.title!=='string'||!entry.title.trim()||entry.title.trim().length>MAX_SONG_TITLE) throw new Error(`Choose a song name up to ${MAX_SONG_TITLE} characters.`);
