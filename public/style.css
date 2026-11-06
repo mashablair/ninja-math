@@ -118,7 +118,9 @@ main{max-width:1240px;margin:0 auto;padding:0 28px}
 .practice-card{--cell:12px;--gap:3px}
 .practice-card > p.muted{margin:6px 0 0}
 .practice-calendars{display:flex;flex-direction:column;gap:22px;margin-top:18px}
-.practice-top{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:4px 12px;margin-bottom:8px}
+.practice-top{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px 12px;margin-bottom:8px}
+.practice-name{display:flex;align-items:center;gap:10px}
+.practice-name img{width:56px;height:56px;flex:none;padding:3px;border-radius:18px;background:color-mix(in srgb,var(--a) 30%,#fff)}
 .practice-top strong{font-size:1.1rem}
 .practice-top span{font-size:.9rem;font-weight:700}
 .heatmap{display:flex;gap:6px}
