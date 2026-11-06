@@ -7,7 +7,8 @@ A pastel, mobile-friendly dashboard for Ninja’s math, English, music, and spor
 - **Today** is Ninja's screen. Subject tabs under the greeting switch Math, English, Music, and Sports. Math and English show today's lesson, the sticker collection, book progress, and the week. Music logs practice and teacher lessons, with a year-long practice calendar per instrument: green for practice, orange for teacher lessons, darker for more minutes (1–14, 15–29, 30–44, 45+). Sports uses the same calendar per activity, all green. Both count days, never streaks. No dates or targets appear here.
 - **Journal** lists check-ins for the selected subject. **For Mom** holds that subject’s plan. Math keeps the timeline to 7th grade. **Download progress** lives here and exports every subject.
 - Finishing a lesson opens a celebration (flying unicorn, confetti, sticker). It turns calm automatically when the device asks for reduced motion.
-- **Tweaks** (top right) sets color theme, light/dark/auto, text size, and celebration style. Saved per device in `localStorage`; `theme.js` applies it before first paint. Log in and Log out live here too. A login lasts 30 days on that device.
+- Each subject's celebration plays its own short jingle, synthesized in `public/sounds.js` (no audio files): a chime for Math, a harp sweep for English, a little tune for Music, drums and a fanfare for Sports. Finishing a whole book adds a finale. Tweaks › Sounds turns them off. A phone or tablet on silent stays silent.
+- **Tweaks** (top right) sets color theme, light/dark/auto, text size, celebration style, and sounds. Saved per device in `localStorage`; `theme.js` applies it before first paint. Log in and Log out live here too. A login lasts 30 days on that device.
 - Encouraging copy lives in `public/messages/`, one file per subject. Each subject has its own unicorn. Keep the words kind and specific: no streaks, guilt, or invented achievements.
 
 ## Start locally

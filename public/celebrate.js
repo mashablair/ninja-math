@@ -1,5 +1,6 @@
 // Full-screen celebration: sticker pop, flying unicorn with a rainbow trail, and confetti.
-// Respects Tweaks › Celebrations › Calm and the device's reduced-motion setting.
+// Respects Tweaks › Celebrations › Calm and the device's reduced-motion setting. Each subject has its own jingle.
+import {play,unlock} from './sounds.js';
 const $=selector=>document.querySelector(selector);
 const COLORS=['#f08a9b','#f6c453','#7fd1a8','#7bb8f0','#b79cf0','#ffffff'];
 const calm=()=>document.documentElement.dataset.effects==='calm'||matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -28,7 +29,8 @@ function restartFlight(){
   flight.replaceWith(fresh);
 }
 
-export function celebrate({sticker,title,message,label,percent,count,mascot='/unicorn.svg'}){
+export function celebrate({sticker,title,message,label,percent,count,mascot='/unicorn.svg',sound,big=false}){
+  play(sound,{big});
   const dialog=$('#celebration');
   const mascotImage=document.querySelector('.unicorn-flight img');
   if(mascotImage) mascotImage.src=mascot;
@@ -51,4 +53,5 @@ export function initCelebration(){
   const dialog=$('#celebration');
   $('#celebrate-close').addEventListener('click',()=>dialog.close());
   dialog.addEventListener('close',()=>$('#confetti').replaceChildren());
+  ['pointerdown','keydown'].forEach(type=>document.addEventListener(type,unlock,{capture:true,passive:true}));
 }

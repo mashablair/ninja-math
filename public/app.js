@@ -421,7 +421,7 @@ function celebrateLessons(book,lessons,before){
     sticker:bookDone?'★':many?lessons.length:lessons[0],
     title:bookDone?`Math ${book} complete!`:many?`${lessons.length} lessons checked off!`:`Lesson ${lessons[0]} is done!`,
     message:many&&!bookDone?'Loose ends, all tied up. Beautiful work!':mathCopy.celebrateMessage({finished,book,bookDone,percentBefore:pctBefore,percentAfter:pctAfter}),
-    label:`Math ${book}`,percent:pctAfter,count:`${finished} of 120 lessons`,mascot:MASCOT.math
+    label:`Math ${book}`,percent:pctAfter,count:`${finished} of 120 lessons`,mascot:MASCOT.math,sound:'math',big:bookDone
   });
 }
 function celebrateEnglish(lessons,before){
@@ -430,7 +430,7 @@ function celebrateEnglish(lessons,before){
     sticker:done?'★':lessons[0],
     title:done?'English 5 complete!':`Lesson ${lessons[0]} is done!`,
     message:englishCopy.celebrateMessage({finished,done,percentBefore:pctBefore,percentAfter:pctAfter}),
-    label:'English 5',percent:pctAfter,count:`${finished} of 120 lessons`,mascot:MASCOT.english
+    label:'English 5',percent:pctAfter,count:`${finished} of 120 lessons`,mascot:MASCOT.english,sound:'english',big:done
   });
 }
 function celebrateMusic(entry){
@@ -439,7 +439,7 @@ function celebrateMusic(entry){
     sticker:entry.minutes,
     title:entry.kind==='lesson'?`${name} lesson saved!`:`${name} practice saved!`,
     message:musicCopy.celebrateMessage(),
-    mascot:MASCOT.music
+    mascot:MASCOT.music,sound:'music'
   });
 }
 function celebrateSports(entry){
@@ -447,7 +447,7 @@ function celebrateSports(entry){
     sticker:entry.minutes,
     title:`${activityName(entry.activity)} saved!`,
     message:sportsCopy.celebrateMessage(),
-    mascot:`/ninja-${entry.activity}.webp`
+    mascot:`/ninja-${entry.activity}.webp`,sound:'sports'
   });
 }
 
@@ -562,7 +562,7 @@ $('#export').addEventListener('click',()=>{
 });
 
 /* ---------- Tweaks (saved per device) ---------- */
-const TWEAKS=['color','mode','text','effects'];
+const TWEAKS=['color','mode','text','effects','sound'];
 function syncThemeColor(){
   const meta=document.querySelector('meta[name="theme-color"]');
   if(meta) meta.content=getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()||'#fbf8f4';
@@ -587,15 +587,15 @@ function initTweaks(){
   });
   $('#preview-celebration').addEventListener('click',()=>{
     $('#tweaks-dialog').close();
-    if(subject==='music'){celebrate({sticker:'♪',title:'This is what practice looks like!',message:'Log a practice to earn the real thing.',mascot:MASCOT.music});return;}
-    if(subject==='sports'){celebrate({sticker:'★',title:'This is what moving looks like!',message:'Log a workout or an adventure to earn the real thing.',mascot:MASCOT.sports});return;}
+    if(subject==='music'){celebrate({sticker:'♪',title:'This is what practice looks like!',message:'Log a practice to earn the real thing.',mascot:MASCOT.music,sound:'music'});return;}
+    if(subject==='sports'){celebrate({sticker:'★',title:'This is what moving looks like!',message:'Log a workout or an adventure to earn the real thing.',mascot:MASCOT.sports,sound:'sports'});return;}
     if(subject==='english'){
       const pct=englishSummary?percentOfTotal(englishSummary.total):18;
-      celebrate({sticker:englishSummary?.nextLesson||23,title:'This is what finishing looks like!',message:'Finish a lesson to earn the real thing.',label:'English 5',percent:pct,count:englishSummary?`${englishSummary.progress.filter(part=>part===1).length} of 120 lessons`:'',mascot:MASCOT.english});
+      celebrate({sticker:englishSummary?.nextLesson||23,title:'This is what finishing looks like!',message:'Finish a lesson to earn the real thing.',label:'English 5',percent:pct,count:englishSummary?`${englishSummary.progress.filter(part=>part===1).length} of 120 lessons`:'',mascot:MASCOT.english,sound:'english'});
       return;
     }
     const book=summary?.active||5;
-    celebrate({sticker:summary?.nextLesson||75,title:'This is what finishing looks like!',message:'Finish a lesson to earn the real thing.',label:`Math ${book}`,percent:summary?percentOf(summary,book):57,count:summary?`${finishedIn(summary,book)} of 120 lessons`:'',mascot:MASCOT.math});
+    celebrate({sticker:summary?.nextLesson||75,title:'This is what finishing looks like!',message:'Finish a lesson to earn the real thing.',label:`Math ${book}`,percent:summary?percentOf(summary,book):57,count:summary?`${finishedIn(summary,book)} of 120 lessons`:'',mascot:MASCOT.math,sound:'math'});
   });
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change',syncThemeColor);
   syncThemeColor();
