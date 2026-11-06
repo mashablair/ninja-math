@@ -1,4 +1,4 @@
-export function today() { return new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date()); }
+export function today(when=new Date()) { return new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit'}).format(when); }
 export function addDays(day,n) { const d=new Date(day+'T12:00:00Z'); d.setUTCDate(d.getUTCDate()+n); return d.toISOString().slice(0,10); }
 export function weekday(day) { const n=new Date(day+'T12:00:00Z').getUTCDay(); return n!==0&&n!==6; }
 export function nextSchoolDay(day,include=false) { let d=include?day:addDays(day,1); while(!weekday(d)) d=addDays(d,1); return d; }

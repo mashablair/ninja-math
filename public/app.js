@@ -1,6 +1,6 @@
 import {BASE_DATE,TARGETS,today,pretty,addDays,weekday,summarize} from './math.js';
 import {summarize as summarizeEnglish,TARGET as ENGLISH_TARGET,BASE_DATE as ENGLISH_BASE} from './english.js';
-import {summarize as summarizeMusic,INSTRUMENTS} from './music.js';
+import {summarize as summarizeMusic,INSTRUMENTS,practiceCalendar} from './music.js';
 import * as mathCopy from './messages/math.js';
 import * as englishCopy from './messages/english.js';
 import * as musicCopy from './messages/music.js';
@@ -158,6 +158,34 @@ function renderMusic(day){
   const week=weekStrip(day,date=>state.entries.filter(entry=>entry.subject==='music'&&entry.date===date),'Music logged');
   $('#music-week-strip').innerHTML=week.html;
   $('#music-week-message').textContent=week.worked?`${week.worked} day${week.worked===1?'':'s'} of music this week. Nice work!`:'Your practice will show up here.';
+  renderPracticeCalendars(day);
+}
+const longDay=date=>new Intl.DateTimeFormat('en-US',{weekday:'long',month:'long',day:'numeric',timeZone:'UTC'}).format(new Date(date+'T12:00:00Z'));
+const monthLabel=month=>new Intl.DateTimeFormat('en-US',{month:'short',timeZone:'UTC'}).format(new Date(month+'-15T12:00:00Z'));
+function dayLabel(cell,name){
+  if(!cell.entries.length) return `${longDay(cell.date)}: no ${name.toLowerCase()} saved`;
+  return `${longDay(cell.date)}: ${cell.minutes} min of ${name.toLowerCase()}${cell.lesson?', with a lesson':''}`;
+}
+function renderPracticeCalendars(day){
+  $('#practice-calendars').innerHTML=INSTRUMENTS.map(item=>{
+    const cal=practiceCalendar(state.entries,item.id,day);
+    const months=cal.months.map(month=>`<span>${month?monthLabel(month):''}</span>`).join('');
+    const cells=cal.weeks.flat().map(cell=>cell.future?'<span class="hm-cell future"></span>':`<button type="button" class="hm-cell l${cell.level}${cell.lesson?' hm-lesson':''}${cell.date===day?' current':''}" data-instrument="${item.id}" data-date="${cell.date}" aria-label="${esc(dayLabel(cell,item.name))}"></button>`).join('');
+    const caption=cal.days?`${cal.days} day${cal.days===1?'':'s'} of ${item.name.toLowerCase()} in the last year`:`Your ${item.name.toLowerCase()} days will show up here.`;
+    return `<div class="practice-instrument"><div class="practice-top"><strong>${item.name}</strong><span class="muted">${caption}</span></div><div class="heatmap"><div class="hm-days" aria-hidden="true"><span></span><span>Mon</span><span></span><span>Wed</span><span></span><span>Fri</span><span></span></div><div class="hm-scroll"><div class="hm-months" aria-hidden="true">${months}</div><div class="hm-grid">${cells}</div></div></div><p class="hm-detail" aria-live="polite" hidden></p></div>`;
+  }).join('');
+  $$('#practice-calendars .hm-scroll').forEach(el=>el.scrollLeft=el.scrollWidth);
+}
+function showPracticeDay(button){
+  const item=INSTRUMENTS.find(i=>i.id===button.dataset.instrument);
+  const cell=practiceCalendar(state.entries,item.id,today()).weeks.flat().find(c=>c.date===button.dataset.date);
+  const box=button.closest('.practice-instrument'), detail=box.querySelector('.hm-detail');
+  $$('#practice-calendars .hm-cell.selected').forEach(el=>el.classList.remove('selected'));
+  button.classList.add('selected');
+  detail.innerHTML=cell.entries.length
+    ?`<strong>${longDay(cell.date)}</strong>${cell.entries.map(entry=>`<span>${entry.kind==='lesson'?'Lesson with teacher':'Practice'} · ${entry.minutes} min${entry.focus?` · ${esc(entry.focus)}`:''}</span>`).join('')}`
+    :`<strong>${longDay(cell.date)}</strong><span>No ${item.name.toLowerCase()} saved for this day.</span>`;
+  detail.hidden=false;
 }
 
 function setBook(book,chosen=true){
@@ -364,6 +392,7 @@ $('#history-list').addEventListener('click',event=>{
   if(edit) requireLogin(()=>editEntry(edit.dataset.edit));
   if(remove) requireLogin(()=>{deleteId=remove.dataset.delete;$('#delete-error').textContent='';$('#delete-dialog').showModal();});
 });
+$('#practice-calendars').addEventListener('click',event=>{const cell=event.target.closest('button.hm-cell');if(cell)showPracticeDay(cell);});
 $('#music-today').addEventListener('click',event=>{const edit=event.target.closest('[data-edit]');if(edit)requireLogin(()=>editEntry(edit.dataset.edit));});
 $$('.close').forEach(button=>button.addEventListener('click',()=>button.closest('dialog').close()));
 $('#entry-status').addEventListener('change',syncFields);
