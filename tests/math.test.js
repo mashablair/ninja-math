@@ -38,3 +38,10 @@ test('bad lesson numbers, impossible dates and oversized notes are rejected',()=
   assert.throws(()=>validate(entry(121)),/Choose/);assert.throws(()=>validate(entry(1,'2026-02-30')),/Choose/);assert.throws(()=>validate({...entry(75),note:'x'.repeat(501)}),/Keep/);assert.throws(()=>validate(entry(75,'2099-01-01')),/Choose/);
   assert.equal(validate(entry(75)).subject,'math');
 });
+test('a math check-in keeps its lesson topic, and a break has none',()=>{
+  assert.equal(validate({...entry(75),topic:'  Adding fractions '}).topic,'Adding fractions');
+  assert.equal(validate(entry(75)).topic,'');
+  assert.equal(validate({...entry(75),status:'skipped',lesson:null,progress:0,topic:'Fractions'}).topic,'');
+  assert.throws(()=>validate({...entry(75),topic:'x'.repeat(101)}),/Keep the lesson topic/);
+  assert.throws(()=>validate({...entry(75),topic:7}),/Keep the lesson topic/);
+});

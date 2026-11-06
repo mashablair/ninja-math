@@ -49,7 +49,8 @@ test('an expired, tampered, or old-password session cannot save', async () => {
   const expired = await signSession(SECRET, {exp:Date.now() - 1000, tag});
   assert.equal(await readSession(`ninja_session=${expired}`, SECRET), null);
   const token = await signSession(SECRET, {exp:Date.now() + 60_000, tag});
-  const tampered = token.slice(0, -1) + (token.at(-1) === 'a' ? 'b' : 'a');
+  const dot = token.indexOf('.') + 1;
+  const tampered = token.slice(0, dot) + (token[dot] === 'A' ? 'B' : 'A') + token.slice(dot + 1);
   assert.equal(await readSession(`ninja_session=${tampered}`, SECRET), null);
   const changed = await worker.fetch(new Request(`${origin}/api/session`, {headers:{Cookie:`ninja_session=${token}`}}), env(1, {AUTH_PASSWORD:'a-new-password'}));
   assert.deepEqual(await changed.json(), {authenticated:false});

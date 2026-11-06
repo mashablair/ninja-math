@@ -10,5 +10,5 @@ export function materialize(events) {
     if(event.operation==='remove') entries.delete(event.entry_id);
     else entries.set(event.entry_id,{...JSON.parse(event.payload),id:event.entry_id,seq:event.seq});
   }
-  return [...entries.values()].sort((a,b)=>a.date.localeCompare(b.date)||a.seq-b.seq);
+  return [...entries.values()].sort((a,b)=>(a.date||'').localeCompare(b.date||'')||a.seq-b.seq);
 }

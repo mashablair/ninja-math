@@ -1,6 +1,6 @@
 import { BASE_DATE, today, materialize } from '../public/math.js';
 import { BASE_DATE as ENGLISH_BASE, LEVEL } from '../public/english.js';
-import { INSTRUMENTS, KINDS, MAX_MINUTES } from '../public/music.js';
+import { INSTRUMENTS, KINDS, MAX_MINUTES, MAX_SONG_TITLE, MAX_SONGS_PER_LOG } from '../public/music.js';
 import { SESSION_MS, clearSessionCookie, credentialTag, readSession, sameSecret, sessionCookie, signSession } from './auth.js';
 const headers={'Content-Type':'application/json','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'};
 const json=(data,status=200,extra)=>{const h=new Headers(headers);if(extra)for(const [key,value] of Object.entries(extra))h.set(key,value);return new Response(JSON.stringify(data),{status,headers:h});};
@@ -19,18 +19,29 @@ function lessonEntry(entry,subject,earliest) {
 export function validate(entry) {
   if(!entry||typeof entry!=='object'||Array.isArray(entry)) throw new Error('Choose a real date from November 3, 2026 through today.');
   if(entry.subject==='english') return {level:LEVEL,...lessonEntry(entry,'english',ENGLISH_BASE)};
+  if(entry.subject==='song') {
+    if(!INSTRUMENTS.some(item=>item.id===entry.instrument)) throw new Error('Choose piano, flute, or saxophone for this song.');
+    if(typeof entry.title!=='string'||!entry.title.trim()||entry.title.trim().length>MAX_SONG_TITLE) throw new Error(`Choose a song name up to ${MAX_SONG_TITLE} characters.`);
+    if(typeof entry.archived!=='boolean') throw new Error('Choose whether the song is archived.');
+    return {subject:'song',instrument:entry.instrument,title:entry.title.trim(),archived:entry.archived};
+  }
   if(entry.subject==='music') {
     assertDate(entry.date,BASE_DATE);
     if(!INSTRUMENTS.some(item=>item.id===entry.instrument)||!KINDS.includes(entry.kind)) throw new Error('Choose piano, flute, or saxophone, and practice or a teacher lesson.');
     if(!Number.isInteger(entry.minutes)||entry.minutes<1||entry.minutes>MAX_MINUTES) throw new Error('Choose the minutes you practiced, from 1 to 180.');
-    if(typeof entry.focus!=='string'||!entry.focus.trim()||entry.focus.length>200) throw new Error(entry.focus?.length>200?'Keep what you practiced under 200 characters.':'Choose what you practiced.');
+    const songs=entry.songs??[];
+    if(!Array.isArray(songs)||songs.length>MAX_SONGS_PER_LOG||!songs.every(idValid)) throw new Error('Choose the songs you practiced.');
+    if(typeof entry.focus!=='string'||entry.focus.length>200) throw new Error('Keep what you practiced under 200 characters.');
+    if(!songs.length&&!entry.focus.trim()) throw new Error('Choose a song or write what you practiced.');
     if(typeof entry.note!=='string'||entry.note.length>500) throw new Error('Keep notes under 500 characters.');
-    return {subject:'music',date:entry.date,instrument:entry.instrument,kind:entry.kind,minutes:entry.minutes,focus:entry.focus.trim(),note:entry.note.trim()};
+    return {subject:'music',date:entry.date,instrument:entry.instrument,kind:entry.kind,minutes:entry.minutes,songs:[...new Set(songs)],focus:entry.focus.trim(),note:entry.note.trim()};
   }
   if(entry.subject&&entry.subject!=='math') throw new Error('Choose a valid subject.');
   const saved=lessonEntry(entry,'math',BASE_DATE);
   if(![5,6].includes(entry.book)) throw new Error('Choose a valid book and check-in.');
-  return {...saved,book:entry.book};
+  const topic=entry.topic??'';
+  if(typeof topic!=='string'||topic.length>100) throw new Error('Keep the lesson topic under 100 characters.');
+  return {...saved,book:entry.book,topic:saved.status==='skipped'?'':topic.trim()};
 }
 async function events(env) { return (await env.DB.prepare('SELECT * FROM events ORDER BY seq').all()).results; }
 function configured(env) { return typeof env.AUTH_USERNAME==='string'&&typeof env.AUTH_PASSWORD==='string'&&typeof env.SESSION_SECRET==='string'&&env.SESSION_SECRET.length>=32; }

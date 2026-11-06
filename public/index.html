@@ -270,7 +270,7 @@
   <p class="small muted" id="history-note">Lessons 1–68 are your starting progress and don’t have individual check-ins. Edits stay in the private backup history.</p>
 </section>
 
-<footer><span>Made for Ninja, one lesson at a time. ♡</span><span>Notes are public · keep them non-personal <button id="refresh">↻ Refresh progress</button></span></footer>
+<footer><span>Made for Ninja, one lesson at a time. ♡</span><span>Check-ins are public · keep them non-personal <button id="refresh">↻ Refresh progress</button></span></footer>
 </main>
 
 <dialog id="entry-dialog"><form id="entry-form">
@@ -281,15 +281,25 @@
   <div class="form-row"><label>Date<input type="date" id="entry-date" required></label><label id="book-field">Book<select id="entry-book"><option value="5">Math 5</option><option value="6">Math 6</option></select></label></div>
   <label id="status-field">How did it go?<select id="entry-status"><option value="complete">Finished a lesson ✓</option><option value="partial">Did part of it</option><option value="skipped">Took a break</option></select></label>
   <div class="form-row" id="lesson-fields"><label>Lesson number<input type="number" id="entry-lesson" min="1" max="120" step="1" required></label><label id="amount-field">Total finished so far<select id="entry-progress"><option value="0.25">¼ of the lesson</option><option value="0.5">½ of the lesson</option><option value="0.75">¾ of the lesson</option></select></label></div>
+  <label id="topic-field">What was the lesson about?<input id="entry-topic" maxlength="100" placeholder="e.g. Adding fractions"></label>
   <div id="music-fields" hidden>
-    <label>Instrument<select id="entry-instrument"></select></label>
-    <label>What kind?<select id="entry-kind"><option value="practice">Practice</option><option value="lesson">Lesson with my teacher</option></select></label>
+    <fieldset class="pick-field"><legend>Instrument</legend><div id="instrument-cards" class="instrument-cards"></div></fieldset>
+    <fieldset class="pick-field"><legend>What kind?</legend><div class="kind-cards">
+      <label class="kind-card kind-practice"><input type="radio" name="kind" value="practice"><span><i class="kind-icon" aria-hidden="true">✓</i>Practice</span></label>
+      <label class="kind-card kind-teacher"><input type="radio" name="kind" value="lesson"><span><i class="kind-icon" aria-hidden="true">♪</i>Lesson with my teacher</span></label>
+    </div></fieldset>
     <label>Minutes<input type="number" id="entry-minutes" min="1" max="180" step="1" inputmode="numeric"></label>
-    <label>What did you work on?<input id="entry-focus" maxlength="200" placeholder="e.g. Scales and the first line"></label>
+    <fieldset class="pick-field song-field"><legend>What did you work on?</legend>
+      <div id="song-chips" class="song-chips"></div>
+      <div id="song-add" class="song-add" hidden><input id="song-title" maxlength="60" placeholder="Song name" aria-label="New song name"><button type="button" id="song-save" class="secondary">Add</button><button type="button" id="song-cancel" class="link-button">Cancel</button></div>
+      <p class="song-tools"><button type="button" id="song-edit" class="link-button" aria-pressed="false">Edit songs</button></p>
+      <div id="song-archived" class="song-archived" hidden></div>
+      <p id="song-error" class="form-error" role="alert"></p>
+      <input id="entry-focus" maxlength="200" placeholder="Anything else? e.g. scales, long tones" aria-label="Anything else you worked on">
+    </fieldset>
   </div>
   <p id="partial-hint" class="small muted">Choose the total completed, including earlier work on this lesson.</p>
   <label id="reason-field">Anything get in the way? <span class="optional">Optional</span><select id="entry-reason"><option value="">No reason needed</option><option>Needed help</option><option>Ran out of time</option><option>Needed a rest</option><option>Other plans</option><option>Something else</option></select></label>
-  <label>A note for next time <span class="optional">Optional · public</span><textarea id="entry-note" maxlength="500" rows="3" placeholder="e.g. Pick up at practice question 8"></textarea></label>
   <p class="form-error" id="form-error" role="alert"></p>
   <button type="submit" class="primary save-button">Save my check-in</button>
 </form></dialog>

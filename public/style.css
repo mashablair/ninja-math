@@ -314,6 +314,41 @@ fieldset input{position:absolute;opacity:0;width:1px;height:1px;min-height:0;mar
 .segmented span{display:flex;align-items:center;justify-content:center;min-height:44px;padding:0 10px;border-radius:12px;font-size:.95rem;font-weight:750;color:var(--muted);text-align:center;cursor:pointer}
 .segmented input:checked+span{background:var(--surface);color:var(--accent-text);font-weight:800;box-shadow:0 1px 4px rgba(43,37,64,.14)}
 fieldset input:focus-visible+span{outline:3px solid var(--accent-text);outline-offset:2px}
+.pick-field{margin:14px 0}
+.pick-field legend{margin-bottom:8px}
+.instrument-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.instrument-card,.kind-card,.song-chip{position:relative}
+.instrument-card span{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 6px 12px;border:2px solid var(--line);border-radius:18px;background:var(--surface);font-weight:800;cursor:pointer}
+.instrument-card img{width:64px;height:64px;border-radius:16px;background:color-mix(in srgb,var(--a) 30%,#fff)}
+.instrument-card input:checked+span{border-color:var(--accent-text);background:var(--tint)}
+.kind-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.kind-card span{display:flex;align-items:center;gap:10px;min-height:56px;padding:8px 14px;border:2px solid var(--line);border-radius:16px;font-weight:800;line-height:1.2;cursor:pointer}
+.kind-icon{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-style:normal;background:var(--surface-2);color:var(--muted)}
+.kind-card.kind-practice input:checked+span{border-color:var(--mint-dot);background:var(--mint-bg);color:var(--mint-ink)}
+.kind-card.kind-practice input:checked+span .kind-icon{background:var(--mint-dot);color:#241f33}
+.kind-card.kind-teacher input:checked+span{border-color:var(--peach-dot);background:var(--peach-bg);color:var(--peach-ink)}
+.kind-card.kind-teacher input:checked+span .kind-icon{background:var(--peach-dot);color:#241f33}
+.song-chips,.song-archived{display:flex;flex-wrap:wrap;gap:8px}
+.song-archived{margin-top:12px;align-items:center}
+.song-archived > span{width:100%;font-weight:800}
+.song-chip > span,.song-chip.add,.song-chip.editing{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border:2px solid var(--line);border-radius:999px;background:var(--surface);color:var(--ink);font-size:.95rem;font-weight:800;cursor:pointer}
+.song-chip input:checked+span{border-color:var(--accent-text);background:var(--tint);color:var(--accent-text)}
+.song-chip input:checked+span::before{content:"✓"}
+.song-chip.add{border-style:dashed;color:var(--accent-text)}
+.song-chip.editing{cursor:default;padding-right:6px}
+.song-chip.editing > span{display:inline;min-height:0;padding:0;border:0;background:none}
+.song-chip.editing button{border:0;border-radius:999px;min-height:32px;padding:0 12px;background:var(--surface-2);color:var(--muted);font-size:.85rem;font-weight:800}
+.song-chip.archived{opacity:.75}
+.song-empty{width:100%;margin:0 0 4px}
+.song-add{display:flex;gap:8px;align-items:center;margin-top:10px}
+.song-add .secondary{min-height:48px}
+.song-field #song-title,.song-field #entry-focus{position:static;opacity:1;width:100%;height:auto;min-height:48px;pointer-events:auto}
+.song-field #song-title{margin:0;flex:1}
+.song-field #entry-focus{margin-top:10px}
+.song-tools{margin:8px 0 0}
+.song-field .form-error{margin:6px 0 0}
+.song-field .form-error:empty{display:none}
+.link-button{border:0;background:none;padding:6px 2px;min-height:36px;color:var(--accent-text);font-size:.95rem;font-weight:800;text-decoration:underline;text-underline-offset:3px}
 
 /* ---------- Celebration ---------- */
 dialog.celebration{width:100vw;height:100vh;height:100dvh;max-width:none;max-height:none;margin:0;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;overflow:hidden;display:none;place-items:center}

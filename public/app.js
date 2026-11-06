@@ -1,6 +1,6 @@
 import {BASE_DATE,TARGETS,today,pretty,addDays,weekday,summarize} from './math.js';
 import {summarize as summarizeEnglish,TARGET as ENGLISH_TARGET,BASE_DATE as ENGLISH_BASE} from './english.js';
-import {summarize as summarizeMusic,INSTRUMENTS,practiceCalendar} from './music.js';
+import {summarize as summarizeMusic,INSTRUMENTS,practiceCalendar,songBank,songsFor} from './music.js';
 import * as mathCopy from './messages/math.js';
 import * as englishCopy from './messages/english.js';
 import * as musicCopy from './messages/music.js';
@@ -16,13 +16,14 @@ const finishedIn=(s,book)=>s.progress[book].filter(p=>p===1).length;
 const percentOf=(s,book)=>s.totals[book]===120?100:Math.min(99,Math.round(s.totals[book]*100/120));
 const percentOfTotal=total=>total===120?100:Math.min(99,Math.round(total*100/120));
 const instrumentName=id=>INSTRUMENTS.find(item=>item.id===id)?.name||'Music';
+const practiceText=entry=>[...(entry.songs||[]).map(id=>bank.find(song=>song.id===id)?.title).filter(Boolean),entry.focus].filter(Boolean).join(' · ');
 const ICONS={
   complete:'<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
   partial:'<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M12 4a8 8 0 1 0 8 8h-8z"/></svg>',
   skipped:'<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>',
   lesson:'♪'
 };
-let state={entries:[],revision:0}, summary, englishSummary, musicSummary, selectedBook=5, bookChosen=false, ready=false, editingId=null, editingSubject='math', editingExisting=false, deleteId=null, toastTimer, justEarned=null, subject='math', authed=false, pending=null;
+let state={entries:[],revision:0}, editingNote='', bank=[], chosenSongs=new Set(), songEditing=false, summary, englishSummary, musicSummary, selectedBook=5, bookChosen=false, ready=false, editingId=null, editingSubject='math', editingExisting=false, deleteId=null, toastTimer, justEarned=null, subject='math', authed=false, pending=null;
 try{const saved=localStorage.getItem('ninja-subject');if(['math','english','music'].includes(saved))subject=saved;}catch(error){}
 
 function toast(message){$('#toast').textContent=message;$('#toast').hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').hidden=true,4500);}
@@ -94,6 +95,7 @@ function render(){
   summary=summarize(state.entries);
   englishSummary=summarizeEnglish(state.entries);
   musicSummary=summarizeMusic(state.entries);
+  bank=songBank(state.entries);
   if(!bookChosen) setBook(summary.active,false);
   const day=today();
   $('#today-label').textContent=new Intl.DateTimeFormat('en-US',{weekday:'long',month:'long',day:'numeric',timeZone:'America/New_York'}).format(new Date());
@@ -153,7 +155,7 @@ function renderEnglish(day){
 }
 function renderMusic(day){
   const todayLogs=musicSummary.entries.filter(entry=>entry.date===day);
-  $('#music-today').innerHTML=todayLogs.length?todayLogs.map(entry=>`<div class="music-row"><div><strong>${esc(instrumentName(entry.instrument))}</strong><span>${entry.kind==='lesson'?'Lesson with teacher':'Practice'} · ${entry.minutes} min</span>${entry.focus?`<p>${esc(entry.focus)}</p>`:''}</div><button type="button" data-edit="${esc(entry.id)}">Edit</button></div>`).join(''):'<p class="muted">Nothing saved for today yet. Add a practice when you’re ready.</p>';
+  $('#music-today').innerHTML=todayLogs.length?todayLogs.map(entry=>`<div class="music-row"><div><strong>${esc(instrumentName(entry.instrument))}</strong><span>${entry.kind==='lesson'?'Lesson with teacher':'Practice'} · ${entry.minutes} min</span>${practiceText(entry)?`<p>${esc(practiceText(entry))}</p>`:''}</div><button type="button" data-edit="${esc(entry.id)}">Edit</button></div>`).join(''):'<p class="muted">Nothing saved for today yet. Add a practice when you’re ready.</p>';
   $('#music-minutes').innerHTML=INSTRUMENTS.map(item=>`<div><span>${item.name}</span><strong>${musicSummary.minutes[item.id]} min</strong></div>`).join('');
   const week=weekStrip(day,date=>state.entries.filter(entry=>entry.subject==='music'&&entry.date===date),'Music logged');
   $('#music-week-strip').innerHTML=week.html;
@@ -183,7 +185,7 @@ function showPracticeDay(button){
   $$('#practice-calendars .hm-cell.selected').forEach(el=>el.classList.remove('selected'));
   button.classList.add('selected');
   detail.innerHTML=cell.entries.length
-    ?`<strong>${longDay(cell.date)}</strong>${cell.entries.map(entry=>`<span>${entry.kind==='lesson'?'Lesson with teacher':'Practice'} · ${entry.minutes} min${entry.focus?` · ${esc(entry.focus)}`:''}</span>`).join('')}`
+    ?`<strong>${longDay(cell.date)}</strong>${cell.entries.map(entry=>`<span>${entry.kind==='lesson'?'Lesson with teacher':'Practice'} · ${entry.minutes} min${practiceText(entry)?` · ${esc(practiceText(entry))}`:''}</span>`).join('')}`
     :`<strong>${longDay(cell.date)}</strong><span>No ${item.name.toLowerCase()} saved for this day.</span>`;
   detail.hidden=false;
 }
@@ -257,16 +259,16 @@ function renderEnglishPlanning(){
 function renderMusicPlanning(){
   $('#music-week-list').innerHTML=INSTRUMENTS.map(item=>`<div><span>${item.name}</span><strong>${musicSummary.minutes[item.id]} min</strong></div>`).join('');
   const lessons=[...musicSummary.lessons].reverse();
-  $('#music-lesson-list').innerHTML=lessons.length?lessons.map(entry=>`<article class="history-item"><span class="history-symbol lesson">${ICONS.lesson}</span><div class="history-body"><h3>${esc(instrumentName(entry.instrument))} · ${entry.minutes} min</h3><small>${pretty(entry.date,true)}</small>${entry.focus?`<p>${esc(entry.focus)}</p>`:''}</div></article>`).join(''):'<p class="muted">Teacher lessons will show up here.</p>';
+  $('#music-lesson-list').innerHTML=lessons.length?lessons.map(entry=>`<article class="history-item"><span class="history-symbol lesson">${ICONS.lesson}</span><div class="history-body"><h3>${esc(instrumentName(entry.instrument))} · ${entry.minutes} min</h3><small>${pretty(entry.date,true)}</small>${practiceText(entry)?`<p>${esc(practiceText(entry))}</p>`:''}</div></article>`).join(''):'<p class="muted">Teacher lessons will show up here.</p>';
 }
 function renderHistory(){
   const list=entriesFor(subject);
   const notes={math:'Lessons 1–68 are your starting progress and don’t have individual check-ins. Edits stay in the private backup history.',english:'Lessons 1–22 are your starting progress and don’t have individual check-ins. Edits stay in the private backup history.',music:'Each practice and each teacher lesson is saved on its own. Edits stay in the private backup history.'};
   $('#history-note').textContent=notes[subject];
   $('#history-list').innerHTML=list.length?[...list].reverse().map(entry=>{
-    if(entry.subject==='music') return `<article class="history-item"><span class="history-symbol ${entry.kind==='lesson'?'lesson':'complete'}">${entry.kind==='lesson'?ICONS.lesson:ICONS.complete}</span><div class="history-body"><h3>${esc(instrumentName(entry.instrument))} · ${entry.kind==='lesson'?'Lesson with teacher':'Practice'} · ${entry.minutes} min</h3><small>${pretty(entry.date,true)}</small>${entry.focus?`<p>${esc(entry.focus)}</p>`:''}${entry.note?`<p>${esc(entry.note)}</p>`:''}</div><div class="history-tools"><button data-edit="${esc(entry.id)}" aria-label="Edit check-in from ${pretty(entry.date)}">Edit</button><button data-delete="${esc(entry.id)}" aria-label="Remove check-in from ${pretty(entry.date)}">Remove</button></div></article>`;
+    if(entry.subject==='music') return `<article class="history-item"><span class="history-symbol ${entry.kind==='lesson'?'lesson':'complete'}">${entry.kind==='lesson'?ICONS.lesson:ICONS.complete}</span><div class="history-body"><h3>${esc(instrumentName(entry.instrument))} · ${entry.kind==='lesson'?'Lesson with teacher':'Practice'} · ${entry.minutes} min</h3><small>${pretty(entry.date,true)}</small>${practiceText(entry)?`<p>${esc(practiceText(entry))}</p>`:''}${entry.note?`<p>${esc(entry.note)}</p>`:''}</div><div class="history-tools"><button data-edit="${esc(entry.id)}" aria-label="Edit check-in from ${pretty(entry.date)}">Edit</button><button data-delete="${esc(entry.id)}" aria-label="Remove check-in from ${pretty(entry.date)}">Remove</button></div></article>`;
     const name=entry.subject==='english'?'English 5':`Math ${entry.book}`;
-    return `<article class="history-item"><span class="history-symbol ${entry.status}">${ICONS[entry.status]||''}</span><div class="history-body"><h3>${entry.status==='skipped'?'A day to recharge':`${name} · Lesson ${entry.lesson} · ${entry.status==='complete'?'Finished!':`${entry.progress*100}% done`}`}</h3><small>${pretty(entry.date,true)}${entry.reason?' · '+esc(entry.reason):''}</small>${entry.note?`<p>${esc(entry.note)}</p>`:''}</div><div class="history-tools"><button data-edit="${esc(entry.id)}" aria-label="Edit check-in from ${pretty(entry.date)}">Edit</button><button data-delete="${esc(entry.id)}" aria-label="Remove check-in from ${pretty(entry.date)}">Remove</button></div></article>`;
+    return `<article class="history-item"><span class="history-symbol ${entry.status}">${ICONS[entry.status]||''}</span><div class="history-body"><h3>${entry.status==='skipped'?'A day to recharge':`${name} · Lesson ${entry.lesson} · ${entry.status==='complete'?'Finished!':`${entry.progress*100}% done`}`}</h3><small>${pretty(entry.date,true)}${entry.reason?' · '+esc(entry.reason):''}</small>${entry.topic?`<p>${esc(entry.topic)}</p>`:''}${entry.note?`<p>${esc(entry.note)}</p>`:''}</div><div class="history-tools"><button data-edit="${esc(entry.id)}" aria-label="Edit check-in from ${pretty(entry.date)}">Edit</button><button data-delete="${esc(entry.id)}" aria-label="Remove check-in from ${pretty(entry.date)}">Remove</button></div></article>`;
   }).join(''):`<div class="empty"><img src="/peaceful-ninja.png" alt="" width="72" height="72"><h2>${subject==='music'?'Your music starts here.':subject==='english'?'Your English story starts here.':'Your story starts here.'}</h2><p>${subject==='music'?'Log a practice or a lesson with your teacher. This is your space.':'Log a lesson, a little progress, or a day off. This is your space.'}</p></div>`;
 }
 
@@ -279,7 +281,8 @@ function syncFields(){
   $('#lesson-fields').hidden=music||status==='skipped';
   $('#entry-lesson').required=!music&&status!=='skipped';
   $('#entry-minutes').required=music;
-  $('#entry-focus').required=music;
+  const topic=editingSubject==='math'&&status!=='skipped';
+  $('#topic-field').hidden=!topic;$('#entry-topic').required=topic;
   $('#amount-field').hidden=music||status!=='partial';
   $('#partial-hint').hidden=music||status!=='partial';
   $('#reason-field').hidden=music;
@@ -294,7 +297,8 @@ function openEntry(status='complete',book=summary.active,lesson=summary.nextLess
   $('#entry-status').value=existing?.status||status;
   const progress=existing?.progress||summary.progress[book]?.[lesson-1]||0.5;
   $('#entry-progress').value=progress===1?'0.5':String(progress);
-  $('#entry-note').value=existing?.note||'';$('#entry-reason').value=existing?.reason||'';
+  $('#entry-topic').value=existing?.topic||'';
+  editingNote=existing?.note||'';$('#entry-reason').value=existing?.reason||'';
   syncFields();$('#entry-dialog').showModal();
 }
 function openEnglish(status='complete',lesson=englishSummary.nextLesson,existing=null){
@@ -307,7 +311,7 @@ function openEnglish(status='complete',lesson=englishSummary.nextLesson,existing
   $('#entry-lesson').value=chosen;$('#entry-status').value=existing?.status||status;
   const progress=existing?.progress||englishSummary.progress[chosen-1]||0.5;
   $('#entry-progress').value=progress===1?'0.5':String(progress);
-  $('#entry-note').value=existing?.note||'';$('#entry-reason').value=existing?.reason||'';
+  editingNote=existing?.note||'';$('#entry-reason').value=existing?.reason||'';
   syncFields();$('#entry-dialog').showModal();
 }
 function openMusic(existing=null,kind='practice'){
@@ -318,12 +322,50 @@ function openMusic(existing=null,kind='practice'){
   $('#dialog-title').textContent=existing?'Make your music note just right.':chosenKind==='lesson'?'A lesson with your teacher.':'What did you play?';
   $('#entry-date').min=BASE_DATE;$('#entry-date').max=today();$('#entry-date').value=existing?.date||today();
   const logged=new Set(musicSummary.entries.filter(entry=>entry.date===today()).map(entry=>entry.instrument));
-  $('#entry-instrument').value=existing?.instrument||INSTRUMENTS.find(item=>!logged.has(item.id))?.id||'piano';
-  $('#entry-kind').value=chosenKind;
+  const form=$('#entry-form').elements;
+  form.instrument.value=existing?.instrument||INSTRUMENTS.find(item=>!logged.has(item.id))?.id||'piano';
+  form.kind.value=chosenKind;
   $('#entry-minutes').value=existing?.minutes||20;
   $('#entry-focus').value=existing?.focus||'';
-  $('#entry-note').value=existing?.note||'';
+  editingNote=existing?.note||'';
+  chosenSongs=new Set(existing?.songs||[]);songEditing=false;
+  closeSongAdd();renderSongPicker();
   syncFields();$('#entry-dialog').showModal();
+}
+const pickedInstrument=()=>$('#entry-form').elements.instrument.value;
+function renderSongPicker(){
+  const songs=songsFor(bank,pickedInstrument());
+  const shown=songs.filter(song=>!song.archived||chosenSongs.has(song.id)), archived=songs.filter(song=>song.archived&&!chosenSongs.has(song.id));
+  const chips=shown.map(song=>songEditing
+    ?`<span class="song-chip editing"><span>${esc(song.title)}</span><button type="button" data-archive="${esc(song.id)}" aria-label="Archive ${esc(song.title)}">Archive</button></span>`
+    :`<label class="song-chip"><input type="checkbox" value="${esc(song.id)}"${chosenSongs.has(song.id)?' checked':''}><span>${esc(song.title)}</span></label>`);
+  if(!songEditing) chips.push('<button type="button" class="song-chip add" data-song-add>+ Add a song</button>');
+  $('#song-chips').innerHTML=(shown.length?'':`<p class="muted song-empty">No ${esc(instrumentName(pickedInstrument()).toLowerCase())} songs yet.</p>`)+chips.join('');
+  $('#song-archived').hidden=!songEditing||!archived.length;
+  $('#song-archived').innerHTML=archived.length?`<span class="small muted">Archived</span>${archived.map(song=>`<span class="song-chip editing archived"><span>${esc(song.title)}</span><button type="button" data-unarchive="${esc(song.id)}" aria-label="Bring back ${esc(song.title)}">Bring back</button></span>`).join('')}`:'';
+  $('#song-edit').hidden=!songs.length;
+  $('#song-edit').textContent=songEditing?'Done':'Edit songs';
+  $('#song-edit').setAttribute('aria-pressed',String(songEditing));
+}
+function closeSongAdd(){$('#song-add').hidden=true;$('#song-title').value='';$('#song-error').textContent='';}
+async function saveSong(id,song,button){
+  $('#song-error').textContent='';
+  if(button) button.disabled=true;
+  try{await mutate('save',id,{subject:'song',...song});return true;}
+  catch(error){$('#song-error').textContent=error.message;return false;}
+  finally{if(button) button.disabled=false;}
+}
+async function addSong(){
+  const title=$('#song-title').value.trim(), instrument=pickedInstrument();
+  if(!title){$('#song-error').textContent='Type the song name first.';return;}
+  const same=songsFor(bank,instrument).find(song=>song.title.localeCompare(title,'en',{sensitivity:'base'})===0);
+  if(same&&!same.archived){chosenSongs.add(same.id);closeSongAdd();renderSongPicker();return;}
+  const id=same?.id||`song-${crypto.randomUUID()}`;
+  if(await saveSong(id,{instrument,title:same?.title||title,archived:false},$('#song-save'))){chosenSongs.add(id);closeSongAdd();renderSongPicker();}
+}
+async function setArchived(id,archived,button){
+  const song=bank.find(item=>item.id===id);if(!song)return;
+  if(await saveSong(id,{instrument:song.instrument,title:song.title,archived},button)){if(archived)chosenSongs.delete(id);renderSongPicker();}
 }
 function editEntry(id){
   const entry=state.entries.find(item=>item.id===id);if(!entry)return;
@@ -406,14 +448,16 @@ $('#entry-form').addEventListener('submit',async event=>{
   const wasExisting=editingExisting;
   try{
     if(editingSubject==='music'){
-      const entry={subject:'music',date:$('#entry-date').value,instrument:$('#entry-instrument').value,kind:$('#entry-kind').value,minutes:Number($('#entry-minutes').value),focus:$('#entry-focus').value,note:$('#entry-note').value};
+      const instrument=pickedInstrument(), mine=new Set(songsFor(bank,instrument).map(song=>song.id));
+      const entry={subject:'music',date:$('#entry-date').value,instrument,kind:$('#entry-form').elements.kind.value,minutes:Number($('#entry-minutes').value),songs:[...chosenSongs].filter(id=>mine.has(id)),focus:$('#entry-focus').value,note:editingNote};
+      if(!entry.songs.length&&!entry.focus.trim()) throw new Error('Choose a song or write what you practiced.');
       await mutate('save',editingId,entry);$('#entry-dialog').close();
       if(wasExisting) toast('Saved!'); else celebrateMusic(entry);
       return;
     }
     if(editingSubject==='english'){
       const status=$('#entry-status').value;
-      const entry={subject:'english',date:$('#entry-date').value,level:5,lesson:status==='skipped'?null:Number($('#entry-lesson').value),status,progress:status==='complete'?1:status==='partial'?Number($('#entry-progress').value):0,reason:$('#entry-reason').value,note:$('#entry-note').value};
+      const entry={subject:'english',date:$('#entry-date').value,level:5,lesson:status==='skipped'?null:Number($('#entry-lesson').value),status,progress:status==='complete'?1:status==='partial'?Number($('#entry-progress').value):0,reason:$('#entry-reason').value,note:editingNote};
       const before=englishSummary, wasDone=status==='complete'&&before.progress[entry.lesson-1]===1;
       if(status==='complete'&&!wasDone) justEarned={subject:'english',lessons:[entry.lesson]};
       await mutate('save',editingId,entry);$('#entry-dialog').close();
@@ -422,7 +466,8 @@ $('#entry-form').addEventListener('submit',async event=>{
       return;
     }
     const status=$('#entry-status').value;
-    const entry={subject:'math',date:$('#entry-date').value,book:Number($('#entry-book').value),lesson:status==='skipped'?null:Number($('#entry-lesson').value),status,progress:status==='complete'?1:status==='partial'?Number($('#entry-progress').value):0,reason:$('#entry-reason').value,note:$('#entry-note').value};
+    const entry={subject:'math',date:$('#entry-date').value,book:Number($('#entry-book').value),lesson:status==='skipped'?null:Number($('#entry-lesson').value),status,progress:status==='complete'?1:status==='partial'?Number($('#entry-progress').value):0,topic:status==='skipped'?'':$('#entry-topic').value,reason:$('#entry-reason').value,note:editingNote};
+    if(status!=='skipped'&&!entry.topic.trim()) throw new Error('Type what the lesson was about.');
     const before=summary, wasDone=status==='complete'&&before.progress[entry.book][entry.lesson-1]===1;
     if(status==='complete'&&!wasDone) justEarned={subject:'math',book:entry.book,lessons:[entry.lesson]};
     await mutate('save',editingId,entry);$('#entry-dialog').close();
@@ -497,7 +542,18 @@ function initTweaks(){
   syncThemeColor();
 }
 
-$('#entry-instrument').innerHTML=INSTRUMENTS.map(item=>`<option value="${item.id}">${item.name}</option>`).join('');
+$('#instrument-cards').innerHTML=INSTRUMENTS.map(item=>`<label class="instrument-card"><input type="radio" name="instrument" value="${item.id}"><span><img src="/ninja-${item.id}.webp" alt="" width="64" height="64">${item.name}</span></label>`).join('');
+$('#instrument-cards').addEventListener('change',()=>{chosenSongs.clear();songEditing=false;closeSongAdd();renderSongPicker();});
+$('#song-chips').addEventListener('change',event=>{const box=event.target.closest('input[type=checkbox]');if(!box)return;if(box.checked)chosenSongs.add(box.value);else chosenSongs.delete(box.value);});
+$('#song-chips').addEventListener('click',event=>{
+  if(event.target.closest('[data-song-add]')){$('#song-add').hidden=false;$('#song-error').textContent='';$('#song-title').focus();}
+  const archive=event.target.closest('[data-archive]');if(archive)setArchived(archive.dataset.archive,true,archive);
+});
+$('#song-archived').addEventListener('click',event=>{const back=event.target.closest('[data-unarchive]');if(back)setArchived(back.dataset.unarchive,false,back);});
+$('#song-save').addEventListener('click',addSong);
+$('#song-title').addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();addSong();}});
+$('#song-cancel').addEventListener('click',closeSongAdd);
+$('#song-edit').addEventListener('click',()=>{songEditing=!songEditing;closeSongAdd();renderSongPicker();});
 $('#login-dialog').addEventListener('close',()=>{const job=pending;pending=null;if(!authed&&job)job.cancel();});
 $('#login-form').addEventListener('submit',async event=>{
   event.preventDefault();
