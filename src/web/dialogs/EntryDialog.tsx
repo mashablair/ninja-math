@@ -1,5 +1,6 @@
 import {useId,useState,type FormEvent,type ReactNode} from 'react';
 import type {PracticeEntry} from '../../domain/events.ts';
+import {summarizeLeague} from '../../domain/league.ts';
 import {summarizeCourse} from '../../domain/subjects/course.ts';
 import {songsFor,summarizePractice} from '../../domain/subjects/practice.ts';
 import {FEELS,OTHER,type Feel} from '../../domain/subjects/types.ts';
@@ -7,7 +8,7 @@ import {FeelIcon} from '../components/Icons.tsx';
 import {CloseButton,Modal} from '../components/Modal.tsx';
 import {courseCelebration,practiceCelebration} from '../celebrations.ts';
 import {choiceLabel,longDay} from '../format.ts';
-import {bookLabel,choicesOf,courseCopy,itemImage,itemName,itemOf,practiceCopy} from '../subjects.ts';
+import {STUDENT,bookLabel,choicesOf,courseCopy,itemImage,itemName,itemOf,practiceCopy} from '../subjects.ts';
 import {useCourse,useData,usePractice,useSongBank,useToday} from '../state/data.tsx';
 import {useUi,type Editing} from '../state/ui.tsx';
 import {SongPicker} from './SongPicker.tsx';
@@ -53,7 +54,7 @@ const DateField=({start,value,onChange}:{start:string;value:string;onChange(valu
 };
 
 function CourseForm({editing,titleId,onDone}:{editing:CourseEditing;titleId:string;onDone():void}) {
-  const {subject,existing}=editing, s=useCourse(subject), day=useToday(), {mutate}=useData(), ui=useUi(), {error,saving,submit}=useSave();
+  const {subject,existing}=editing, s=useCourse(subject), day=useToday(), {entries,mutate}=useData(), ui=useUi(), {error,saving,submit}=useSave();
   const startBook=existing?Number(existing[subject.bookField]??subject.books[0]!.id):editing.book??s.active;
   const startLesson=existing?.lesson??editing.lesson??s.nextLesson;
   const startProgress=existing?.progress||s.books[startBook]?.progress[startLesson-1]||0.5;
@@ -71,10 +72,10 @@ function CourseForm({editing,titleId,onDone}:{editing:CourseEditing;titleId:stri
     const wasDone=status==='complete'&&s.books[book]?.progress[n-1]===1;
     const next=await mutate('save',editing.id,entry);
     onDone();
-    const after=summarizeCourse(subject,next.entries,day);
+    const after=summarizeCourse(subject,next.entries,day), league={before:summarizeLeague(STUDENT,entries,day),after:summarizeLeague(STUDENT,next.entries,day)};
     if(status==='complete'&&!wasDone&&after.books[book]?.progress[n-1]===1){
       ui.earn({subject:subject.id,book,lessons:[n]});
-      ui.celebrate(courseCelebration(subject,book,[n],s,after));
+      ui.celebrate(courseCelebration(subject,book,[n],s,after,league));
     }else ui.toast(status==='complete'?'Saved! Nice work.':status==='partial'?copy.partialMessage():copy.breakMessage());
   });
   return <Shell title={title} titleId={titleId} context={single?bookLabel(subject,subject.books[0]!.id):undefined} error={error} saving={saving} onSubmit={save} onDone={onDone}>

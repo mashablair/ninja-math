@@ -4,11 +4,12 @@ import {earnedBadges,type Badge} from '../../domain/subjects/practice.ts';
 import type {PracticeSubject} from '../../domain/subjects/types.ts';
 import {badgeLook,badgeOrder,type BadgeLook} from '../badges.ts';
 import {cx} from '../format.ts';
+import {BeltIcon,LeagueShield} from './Icons.tsx';
 import {practiceCopy} from '../subjects.ts';
 
-export function BadgeMedal({look,earned}:{look:Pick<BadgeLook,'image'|'text'>;earned:boolean}) {
-  return <span className={cx('medal',earned?'earned':'locked')} aria-hidden="true">
-    {look.image?<img src={look.image} alt="" width="64" height="64"/>:<b>{look.text}</b>}
+export function BadgeMedal({look,earned}:{look:Pick<BadgeLook,'image'|'text'>&{belt?:number;league?:number};earned:boolean}) {
+  return <span className={cx('medal',earned?'earned':'locked',(look.belt??look.league)!=null&&'icon')} aria-hidden="true">
+    {look.belt!=null?<BeltIcon belt={look.belt} size={56}/>:look.league!=null?<LeagueShield league={look.league} size={56}/>:look.image?<img src={look.image} alt="" width="64" height="64"/>:<b>{look.text}</b>}
   </span>;
 }
 

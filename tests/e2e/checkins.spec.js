@@ -66,6 +66,31 @@ test('math: a break needs no topic',async({page})=>{
   await expect(page.getByRole('status').filter({hasText:/break|Recharge|Rest is part/i})).toBeVisible();
 });
 
+test('math: the path, the unit assessment, and the league',async({page})=>{
+  await open(page,'Math');
+  await expect(page.locator('.lesson-name')).toHaveText('Time Review');
+  await expect(page.locator('.league-card')).toContainText('9 more lessons to move up to Silver League!');
+  for(const lesson of [89,90]){
+    await button(page,`Math 5, lesson ${lesson}, coming up`).click();
+    if(lesson===89) await logIn(page);
+    await page.getByRole('textbox',{name:'What was the lesson about?'}).fill('Unit assessment');
+    await save(page);
+    // Skipping ahead to the assessment doesn't earn the belt: the rest of the unit still counts.
+    await expect(page.locator('.new-badge')).toHaveCount(0);
+    await celebrated(page,`Lesson ${lesson} is done!`);
+  }
+  await expect(page.locator('.unit.current')).toContainText('11 of 30');
+
+  await button(page,'For Mom').click();
+  await expect(page.getByRole('row').filter({hasText:'Math 5 · Unit 3'})).toContainText('In progress');
+  const week=page.getByRole('row').filter({hasText:'(this week)'});
+  await expect(week).toContainText('3 of 10');
+  await week.getByRole('button',{name:/^Mark off the week of/}).click();
+  await expect(week).toContainText('Week off');
+  await week.getByRole('button',{name:/^Count the week of/}).click();
+  await expect(week).toContainText('In progress');
+});
+
 test('english: finishing lesson 23 earns a sticker',async({page})=>{
   await open(page,'English');
   await page.getByRole('button',{name:/I finished it!/}).click();
@@ -75,6 +100,8 @@ test('english: finishing lesson 23 earns a sticker',async({page})=>{
   await save(page);
   await celebrated(page,'Lesson 23 is done!');
   await expect(button(page,'English 5, lesson 23, finished')).toBeVisible();
+  await expect(page.locator('.unit.current')).toContainText('Unit 2');
+  await expect(page.locator('.belt-card')).toContainText('20 more lessons to your yellow belt');
 });
 
 // The music and sports tests each share one page, so they log in once: the login allows 8 tries a minute per address.

@@ -1,6 +1,7 @@
 import {createContext,useCallback,useContext,useEffect,useMemo,useRef,useState,type ReactNode} from 'react';
 import {today} from '../../domain/dates.ts';
 import type {Entry} from '../../domain/events.ts';
+import {summarizeLeague} from '../../domain/league.ts';
 import {summarizeCourse} from '../../domain/subjects/course.ts';
 import {summarizePractice,songBank} from '../../domain/subjects/practice.ts';
 import type {CourseSubject,PracticeSubject} from '../../domain/subjects/types.ts';
@@ -77,4 +78,8 @@ export function usePractice(subject:PracticeSubject) {
 export function useSongBank() {
   const {entries}=useData();
   return useMemo(()=>SONG_SUBJECT?songBank(SONG_SUBJECT,entries):[],[entries]);
+}
+export function useLeague() {
+  const {entries}=useData(), day=useToday();
+  return useMemo(()=>summarizeLeague(STUDENT,entries,day),[entries,day]);
 }

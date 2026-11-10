@@ -19,6 +19,8 @@ export const practiceCopy=(subject:PracticeSubject)=>PRACTICE[subject.id]!;
 export const subjectById=(id:string|null|undefined):Subject|undefined=>STUDENT.subjects.find(subject=>subject.id===id);
 export const entriesOf=(subject:Subject,entries:readonly Entry[])=>entries.filter(entry=>entry.subject===subject.id);
 export const bookLabel=(subject:CourseSubject,book:number)=>`${subject.name} ${book}`;
+// The lesson's name from the book's table of contents, when we have it.
+export const lessonTitle=(subject:CourseSubject,book:number,lesson:number)=>subject.books.find(b=>b.id===book)?.titles?.[lesson-1]??'';
 export const bookOf=(subject:CourseSubject,entry:Entry)=>Number(entry[subject.bookField]??subject.books[0]!.id);
 export const itemOf=(subject:PracticeSubject,entry:Entry)=>String(entry[subject.itemField]);
 export const itemName=(subject:PracticeSubject,id:string)=>id===OTHER&&subject.other?practiceCopy(subject).other!.name:subject.items.find(item=>item.id===id)?.name??subject.name;

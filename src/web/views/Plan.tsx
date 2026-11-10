@@ -9,6 +9,7 @@ import {STUDENT,bookLabel,courseCopy,itemName,itemOf,practiceCopy,practiceText} 
 import {useCourse,useData,usePractice,useSongBank,useToday} from '../state/data.tsx';
 import type {CourseCopy} from '../messages/types.ts';
 import {PracticePlan} from './PracticePlan.tsx';
+import {LeaguePlan,UnitsTable} from './RewardsPlan.tsx';
 
 function Goals({subject,s}:{subject:CourseSubject;s:CourseSummary}) {
   const tagline=courseCopy(subject).plan.taglines;
@@ -79,6 +80,8 @@ function CoursePlan({subject}:{subject:CourseSubject}) {
       <div className="timeline-scroll"><Timeline subject={subject} s={s} plan={plan}/></div>
       <p className="muted timeline-note">{plan.note(s)}</p>
     </section>
+    <UnitsTable subject={subject} s={s}/>
+    {STUDENT.league?.subjects.includes(subject.id)&&<LeaguePlan/>}
     <details className="projection-info card"><summary>{plan.info.summary}</summary>{plan.info.paragraphs.map(p=><p key={p}>{p}</p>)}</details>
   </>;
 }

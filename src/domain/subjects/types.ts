@@ -1,6 +1,8 @@
 import type {Day} from '../dates.ts';
 
 export interface Item {id:string;name:string}
+// A unit of lessons first–last. It may have a review lesson, project lessons, and an assessment at the end; finishing all of it earns its belt.
+export interface Unit {first:number;last:number;review?:number;test?:number[];projects?:number[]}
 export interface Book {
   id:number;
   lessons:number;
@@ -11,6 +13,9 @@ export interface Book {
   needsConfirmation?:number[];
   // The planned next lesson skips ahead of unconfirmed ones.
   plannedFrom?:number;
+  // From the book's table of contents, when we have it. Without units the book shows as one sticker grid.
+  units?:Unit[];
+  titles?:string[];
 }
 // A book-based curriculum on a weekday plan, books one after another (Math 5 then Math 6).
 export interface CourseSubject {
@@ -54,4 +59,7 @@ export const FEELS=['tough','good','amazing'] as const;
 export type Feel=typeof FEELS[number];
 export const OTHER='other';
 export type Subject=CourseSubject|PracticeSubject;
-export interface Student {id:string;name:string;timezone:string;subjects:Subject[]}
+// A weekly league across course subjects: lessons finished each week, up to perSubject from each, move her up a league.
+// Below stay she moves down one. A week Mom marks off counts neither way.
+export interface League {start:string;subjects:string[];perSubject:number;stay:number;tiers:number}
+export interface Student {id:string;name:string;timezone:string;subjects:Subject[];league?:League}

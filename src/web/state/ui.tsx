@@ -18,7 +18,8 @@ export interface Celebration {
   // A mascot photo sits in a circle; the unicorn flies as it is.
   round?:boolean;
 }
-export interface NewBadge {image?:string;text?:string;name:string;detail:string;more:number}
+// A belt or league shows its own icon in place of a picture.
+export interface NewBadge {image?:string;text?:string;belt?:number;league?:number;name:string;detail:string;more:number}
 export type Editing=
   |{type:'course';subject:CourseSubject;id:string;existing:CourseEntry|null;status:Status;book?:number;lesson?:number}
   |{type:'practice';subject:PracticeSubject;id:string;existing:PracticeEntry|null;kind:'practice'|'lesson';item?:string};
