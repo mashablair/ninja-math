@@ -14,7 +14,8 @@ const CHOICES:{key:Tweak;legend:string;style:'swatches'|'segmented';options:[val
   {key:'mode',legend:'Light or dark',style:'segmented',options:[['light','Light'],['dark','Dark'],['auto','Match device']]},
   {key:'text',legend:'Text size',style:'segmented',options:[['normal','Normal'],['large','Large']]},
   {key:'effects',legend:'Celebrations',style:'segmented',options:[['full','Unicorn + confetti'],['calm','Calm']]},
-  {key:'sound',legend:'Sounds',style:'segmented',options:[['on','On'],['off','Off']]}
+  {key:'sound',legend:'Sounds',style:'segmented',options:[['on','On'],['off','Off']]},
+  {key:'voice',legend:'When lessons slip',style:'segmented',options:[['sassy','Sassy Ninja'],['gentle','Gentle Ninja']]}
 ];
 
 export function TweaksDialog({open,onClose,subject}:{open:boolean;onClose():void;subject:Subject}) {
@@ -42,6 +43,6 @@ export function TweaksDialog({open,onClose,subject}:{open:boolean;onClose():void
     <button type="button" className="secondary save-button" onClick={preview}>Preview the celebration</button>
     <p className="small muted">{status||(authed?'Logged in on this device. Saving stays available for 30 days.':'Looking is open. Saving a check-in needs a login.')}</p>
     <button type="button" className="secondary save-button" disabled={busy} onClick={account}>{authed?'Log out':'Log in'}</button>
-    <p className="small muted">Color, text, celebrations, and sounds are saved on this device.</p>
+    <p className="small muted">Color, text, celebrations, sounds, and Ninja’s voice are saved on this device.</p>
   </Modal>;
 }

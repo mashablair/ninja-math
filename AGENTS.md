@@ -1,6 +1,6 @@
 # Ninja Math
 
-Use `README.md` for architecture, scheduling rules, and recovery. The dashboard is for a child known publicly only as Ninja. Preserve its warm pastel design and avoid guilt, punitive streaks, or fabricated achievements. The one exception, Mom's choice: the weekly league can move Ninja down one league after a light week (never below Bronze, kind words only), and Mom can mark a week off.
+Use `README.md` for architecture, scheduling rules, and recovery. The dashboard is for a child known publicly only as Ninja. Preserve its warm pastel design and avoid guilt, punitive streaks, or fabricated achievements. The one exception, Mom's choice: the weekly league can move Ninja down one league after a light week (never below Bronze, kind words only), and Mom can mark a week off. Ninja also asked for tough love: when Math or English slips, the speech bubble teases her about the work (never about her), unless Tweaks is set to Gentle Ninja.
 
 - Viewing stays public. Saves, edits, removals, and catch-up confirmations require the one shared login. Do not add account signup, or treat rate limiting as authentication.
 - Never mark lessons 69–74 finished without a logged confirmation. Baseline complete lessons are 1–68.
