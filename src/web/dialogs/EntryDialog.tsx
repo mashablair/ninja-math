@@ -42,7 +42,7 @@ function Shell({title,titleId,context,error,saving,onSubmit,onDone,plain,footer,
     <h2 id={titleId}>{title}</h2>
     {!plain&&<p className="muted">Let’s save what you worked on.</p>}
     {context&&<p className="muted">{context}</p>}
-    {children}
+    <div className="dialog-fields">{children}</div>
     <p className="form-error" role="alert">{error}</p>
     <button type="submit" className="primary save-button" disabled={saving}>Save my check-in</button>
     {footer}
