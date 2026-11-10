@@ -81,8 +81,8 @@ h1,h2,h3{font-weight:800;letter-spacing:-.01em;line-height:1.15;margin:0}
 
 /* ---------- Layout ---------- */
 main{max-width:1240px;margin:0 auto;padding:0 28px}
-#connection{font-size:.875rem;text-align:right;color:var(--muted);padding-top:10px;min-height:32px}
-#connection.error{color:var(--danger);font-weight:700}
+.connection{font-size:.875rem;text-align:right;color:var(--muted);padding-top:10px;min-height:32px}
+.connection.error{color:var(--danger);font-weight:700}
 .hello{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:4px 0 22px}
 .date{margin:0 0 4px;font-size:1.05rem;font-weight:750;color:var(--muted)}
 .hello h1{font-size:2.2rem;font-weight:800;letter-spacing:-.015em}
@@ -102,10 +102,10 @@ main{max-width:1240px;margin:0 auto;padding:0 28px}
 .lesson-title{display:flex;align-items:baseline;flex-wrap:wrap;gap:6px 14px;margin-top:6px}
 .checkin-card .lesson-title h2{font-size:2.8rem;font-weight:800;letter-spacing:-.02em;line-height:1}
 .lesson-book{font-size:1.15rem;font-weight:800;color:var(--muted)}
-#next-subtitle{margin:10px 0 18px;font-size:1.05rem}
+.checkin-card > p.muted.next-subtitle{margin:10px 0 18px;font-size:1.05rem}
 .checkin-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
-.music-actions{grid-template-columns:repeat(2,minmax(0,1fr))}
-.sports-actions{grid-template-columns:minmax(0,360px)}
+.two-actions{grid-template-columns:repeat(2,minmax(0,1fr))}
+.one-action{grid-template-columns:minmax(0,360px)}
 .music-today{display:flex;flex-direction:column;gap:10px;margin:14px 0 18px}
 .music-row{display:flex;align-items:center;gap:12px;background:var(--surface-2);border-radius:16px;padding:12px 14px}
 .music-row div{flex:1;min-width:0}
@@ -146,7 +146,7 @@ main{max-width:1240px;margin:0 auto;padding:0 28px}
 .hm-legend > span:first-child{margin-right:2px}
 .hm-legend > span:nth-child(7){margin:0 14px 0 2px}
 .hm-key{display:inline-flex;align-items:center;gap:5px;margin-right:12px}
-#music-heading,#sports-heading{font-size:2rem;margin-top:6px}
+.card .practice-heading{font-size:2rem;margin-top:6px}
 .checkin-card > p.muted{margin:10px 0 0}
 .history-symbol.lesson{background:var(--tint);color:var(--accent-text);font-size:1.4rem}
 .action{border:0;border-radius:20px;min-height:110px;padding:16px 18px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left}
@@ -197,7 +197,7 @@ main{max-width:1240px;margin:0 auto;padding:0 28px}
 .ring-label strong{font-size:2.3rem;font-weight:800;letter-spacing:-.02em;line-height:1}
 .ring-label span{font-size:.95rem;font-weight:750;color:var(--muted);margin-top:4px}
 .ring-count{margin:14px 0 2px;font-size:1.2rem;font-weight:800}
-#book-cheer{margin:0;font-size:1rem}
+.book-cheer{margin:0;font-size:1rem}
 .catchup-card{background:var(--quick-bg);border-color:var(--quick-line)}
 .catchup-card .label{color:var(--check-ink)}
 .catchup-card h3{margin-top:6px}
@@ -246,8 +246,8 @@ main{max-width:1240px;margin:0 auto;padding:0 28px}
 .tl-mark{position:absolute;top:84px;width:2px;height:14px;background:var(--muted)}
 .tl-mark.now{top:30px;height:60px;background:var(--ink)}
 .tl-label{position:absolute;font-size:.85rem;font-weight:750;color:var(--muted);white-space:nowrap;transform:translateX(-50%)}
-.tl-label.now{color:var(--ink);font-weight:800}
-#timeline-note{margin:8px 0 0;font-size:1rem}
+.tl-label.now{color:var(--ink);font-weight:800;transform:none}
+.timeline-note{margin:8px 0 0;font-size:1rem}
 .projection-info{margin-bottom:16px;font-size:1rem;color:var(--muted)}
 .projection-info summary{cursor:pointer;font-weight:800;color:var(--ink)}
 .projection-info p{max-width:780px}
@@ -295,7 +295,7 @@ p.form-error:empty{display:none}
 .catchup-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 .catchup-options label{margin:0;padding:14px 10px;border-radius:14px;background:var(--check-bg);color:var(--check-ink);text-align:center;font-weight:800}
 .catchup-options input{width:22px;height:22px;min-height:0;margin:10px auto 0;accent-color:var(--accent)}
-#toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);padding:16px 24px;background:var(--ink);color:var(--bg);box-shadow:0 6px 28px rgba(20,14,30,.25);border-radius:16px;font-size:1.05rem;font-weight:750;z-index:20;text-align:center;max-width:90vw}
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);padding:16px 24px;background:var(--ink);color:var(--bg);box-shadow:0 6px 28px rgba(20,14,30,.25);border-radius:16px;font-size:1.05rem;font-weight:750;z-index:20;text-align:center;max-width:90vw}
 
 /* Tweaks */
 fieldset{border:0;padding:0;margin:0 0 20px}
@@ -344,9 +344,9 @@ fieldset input:focus-visible+span{outline:3px solid var(--accent-text);outline-o
 .song-empty{width:100%;margin:0 0 4px}
 .song-add{display:flex;gap:8px;align-items:center;margin-top:10px}
 .song-add .secondary{min-height:48px}
-.song-field #song-title,.song-field #entry-focus{position:static;opacity:1;width:100%;height:auto;min-height:48px;pointer-events:auto}
-.song-field #song-title{margin:0;flex:1}
-.song-field #entry-focus{margin-top:10px}
+.song-field .song-title,.song-field .song-focus{position:static;opacity:1;width:100%;height:auto;min-height:48px;pointer-events:auto}
+.song-field .song-title{margin:0;flex:1}
+.song-field .song-focus{margin-top:10px}
 .song-tools{margin:8px 0 0}
 .song-field .form-error{margin:6px 0 0}
 .song-field .form-error:empty{display:none}
@@ -365,7 +365,7 @@ dialog.celebration[open]{display:grid}
 .celebrate-bar{margin-top:10px;height:12px;border-radius:999px;background:var(--tint);overflow:hidden}
 .celebrate-bar span{display:block;height:100%;width:0;border-radius:999px;background:var(--accent-mid);transition:width 1.2s .5s ease-out}
 .celebrate-progress p{margin:8px 0 0;font-size:.95rem}
-#celebrate-close{width:100%;font-size:1.2rem}
+.celebration-card .celebrate-close{width:100%;font-size:1.2rem}
 .confetti{position:fixed;inset:0;pointer-events:none;z-index:1}
 .confetti i{position:absolute;top:-24px;left:var(--x);width:var(--w);height:var(--h);background:var(--c);border-radius:3px;opacity:0;animation:fall var(--d) var(--delay) cubic-bezier(.3,.7,.6,1) forwards}
 .confetti i.round{border-radius:50%}
