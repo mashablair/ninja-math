@@ -500,6 +500,13 @@ fieldset input:focus-visible+span{outline:3px solid var(--accent-text);outline-o
 .song-field .form-error{margin:6px 0 0}
 .song-field .form-error:empty{display:none}
 .link-button{border:0;background:none;padding:6px 2px;min-height:36px;color:var(--accent-text);font-size:.95rem;font-weight:800;text-decoration:underline;text-underline-offset:3px}
+/* Landscape iPad: the long dialogs go wide and flow their fields into two columns so they fit without scrolling. */
+@media (orientation:landscape) and (min-width:900px){
+  dialog:has(.dialog-fields){width:min(960px,calc(100% - 48px));max-height:96vh;padding:22px 32px}
+  .dialog-fields{columns:2;column-gap:36px;margin-top:16px}
+  .dialog-fields>*{break-inside:avoid}
+  .dialog-fields>:first-child{margin-top:0}
+}
 
 /* ---------- Celebration ---------- */
 dialog.celebration{width:100vw;height:100vh;height:100dvh;max-width:none;max-height:none;margin:0;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;overflow:hidden;display:none;place-items:center}

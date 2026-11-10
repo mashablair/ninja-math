@@ -35,7 +35,7 @@ export function TweaksDialog({open,onClose,subject}:{open:boolean;onClose():void
   }
   return <Modal open={open} onClose={onClose} labelledBy={title}>
     <div className="dialog-header"><h2 id={title}>Tweaks</h2><CloseButton label="Close tweaks" onClick={onClose}/></div>
-    <form>{CHOICES.map(({key,legend,style,options})=><fieldset key={key}><legend>{legend}</legend><div className={style}>
+    <form className="dialog-fields">{CHOICES.map(({key,legend,style,options})=><fieldset key={key}><legend>{legend}</legend><div className={style}>
       {options.map(([value,label])=><label key={value} className={style==='swatches'?`swatch ${value}`:undefined}>
         <input type="radio" name={key} value={value} checked={tweaks[key]===value} onChange={()=>change(key,value)}/><span>{label}</span>
       </label>)}
