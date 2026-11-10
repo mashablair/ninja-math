@@ -8,7 +8,7 @@ import {FeelIcon} from '../components/Icons.tsx';
 import {CloseButton,Modal} from '../components/Modal.tsx';
 import {courseCelebration,practiceCelebration} from '../celebrations.ts';
 import {choiceLabel,longDay} from '../format.ts';
-import {STUDENT,bookLabel,choicesOf,courseCopy,itemImage,itemName,itemOf,practiceCopy} from '../subjects.ts';
+import {STUDENT,bookLabel,choicesOf,courseCopy,itemImage,itemName,itemOf,lessonTitle,practiceCopy} from '../subjects.ts';
 import {useCourse,useData,usePractice,useSongBank,useToday} from '../state/data.tsx';
 import {useUi,type Editing} from '../state/ui.tsx';
 import {SongPicker} from './SongPicker.tsx';
@@ -62,6 +62,7 @@ function CourseForm({editing,titleId,onDone}:{editing:CourseEditing;titleId:stri
   const [lesson,setLesson]=useState(String(startLesson)), [progress,setProgress]=useState(startProgress===1?'0.5':String(startProgress));
   const [topic,setTopic]=useState(existing?.topic??''), [reason,setReason]=useState(existing?.reason??'');
   const skipped=status==='skipped', single=subject.books.length===1, lessons=s.books[book]?.lessons??120;
+  const n=Number(lesson), name=Number.isInteger(n)&&n>=1&&n<=lessons?lessonTitle(subject,book,n):'';
   const title=existing?'Make your check-in just right.':editing.status==='skipped'?'Rest is part of learning.':editing.status==='partial'?'Little steps still count.':'Woohoo! Let’s add your sticker.';
 
   const save=submit(async()=>{
@@ -92,6 +93,7 @@ function CourseForm({editing,titleId,onDone}:{editing:CourseEditing;titleId:stri
         <option value="0.25">¼ of the lesson</option><option value="0.5">½ of the lesson</option><option value="0.75">¾ of the lesson</option>
       </select></label>}
     </div>}
+    {!skipped&&name&&<p className="lesson-name-hint">📖 {name}</p>}
     {subject.askTopic&&!skipped&&<label>What was the lesson about?<input maxLength={100} placeholder="e.g. Adding fractions" required value={topic} onChange={e=>setTopic(e.target.value)}/></label>}
     {status==='partial'&&<p className="small muted">Choose the total completed, including earlier work on this lesson.</p>}
     <label>Anything get in the way? <span className="optional">Optional</span><select value={reason} onChange={e=>setReason(e.target.value)}>

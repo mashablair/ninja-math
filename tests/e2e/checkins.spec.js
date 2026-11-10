@@ -46,6 +46,10 @@ test('math: finishing lesson 75 asks for the topic and earns a sticker',async({p
   await page.getByRole('button',{name:/I finished it!/}).click();
   await logIn(page);
   await expect(page.getByRole('spinbutton',{name:'Lesson number'})).toHaveValue('75');
+  await expect(page.locator('.lesson-name-hint')).toHaveText(/^📖 \w/);
+  await page.getByRole('spinbutton',{name:'Lesson number'}).fill('76');
+  await expect(page.locator('.lesson-name-hint')).toHaveText('📖 Time Review');
+  await page.getByRole('spinbutton',{name:'Lesson number'}).fill('75');
   const topic=page.getByRole('textbox',{name:'What was the lesson about?'});
   await expect(topic).toHaveAttribute('required','');
   await topic.fill('Adding fractions');
