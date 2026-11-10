@@ -19,3 +19,7 @@ export function pretty(day:Day,year=false):string {
   return new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',...(year?{year:'numeric'}:{}),timeZone:'UTC'}).format(noon(day));
 }
 export const longDate=(day:Day):string=>new Intl.DateTimeFormat('en-US',{month:'long',day:'numeric',year:'numeric',timeZone:'UTC'}).format(noon(day));
+// Months are 'YYYY-MM'.
+export const monthOf=(day:Day):string=>day.slice(0,7);
+export function addMonths(month:string,n:number):string { const d=noon(month+'-15'); d.setUTCMonth(d.getUTCMonth()+n); return d.toISOString().slice(0,7); }
+export const daysBetween=(from:Day,to:Day):number=>Math.round((noon(to).getTime()-noon(from).getTime())/86400000);
