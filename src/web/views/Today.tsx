@@ -1,17 +1,28 @@
 import type {Subject} from '../../domain/subjects/types.ts';
 import {SubjectTabs} from '../components/SubjectTabs.tsx';
-import {todayLabel} from '../format.ts';
-import {STUDENT,courseCopy,entriesOf,practiceCopy} from '../subjects.ts';
-import {useData,useToday} from '../state/data.tsx';
+import {cx,todayLabel} from '../format.ts';
+import {nudgeFor} from '../../domain/nudge.ts';
+import {summarizeCourse} from '../../domain/subjects/course.ts';
+import {sassyMessage} from '../messages/sassy.ts';
+import {leagueName} from '../messages/rewards.ts';
+import {sassyVoice} from '../tweaks.ts';
+import {STUDENT,courseCopy,entriesOf,practiceCopy,subjectById} from '../subjects.ts';
+import {useData,useLeague,useToday} from '../state/data.tsx';
 import {CourseToday} from './CourseToday.tsx';
 import {PracticeToday} from './PracticeToday.tsx';
 
-function useDailyMessage(subject:Subject) {
-  const {entries,loaded}=useData(), day=useToday();
-  if(!loaded) return 'Small steps add up to big things.';
+// Slipping on Math or English gets a sassy line (unless she picked gentle in Tweaks); otherwise the day's kind one.
+function useDailyMessage(subject:Subject):{text:string;sassy:boolean} {
+  const {entries,loaded}=useData(), day=useToday(), league=useLeague();
+  if(!loaded) return {text:'Small steps add up to big things.',sassy:false};
+  if(subject.type==='course'&&sassyVoice()){
+    const nudge=nudgeFor(STUDENT,subject,entries,league,day);
+    if(nudge) return {text:sassyMessage(nudge.kind==='lopsided'?{...nudge,other:subjectById(nudge.other)?.name??nudge.other}:nudge,
+      {subject:subject.name,lesson:summarizeCourse(subject,entries,day).nextLesson,league:leagueName(league!.league),day}),sassy:true};
+  }
   const todays=entriesOf(subject,entries).filter(entry=>entry.date===day);
   const copy=subject.type==='course'?courseCopy(subject):practiceCopy(subject);
-  return copy.dailyMessage(day,{loggedToday:todays.length>0,lastStatus:todays.at(-1)?.status as string|undefined});
+  return {text:copy.dailyMessage(day,{loggedToday:todays.length>0,lastStatus:todays.at(-1)?.status as string|undefined}),sassy:false};
 }
 
 // Ninja's screen. No dates, targets, or forecasts here; those live in the plan.
@@ -22,7 +33,7 @@ export function Today({subject,onSubject,book,onBook}:{subject:Subject;onSubject
       <div><p className="date">{todayLabel(STUDENT.timezone)}</p><h1>Hi {STUDENT.name}!</h1></div>
       <div className="ninja-says">
         <img src="/peaceful-ninja.png" alt="" width="76" height="76"/>
-        <p className="bubble">{message}</p>
+        <p className={cx('bubble',message.sassy&&'sassy')}>{message.text}</p>
       </div>
     </div>
     <SubjectTabs subject={subject} onChange={onSubject}/>
