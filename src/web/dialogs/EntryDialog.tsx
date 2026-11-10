@@ -1,9 +1,13 @@
 import {useId,useState,type FormEvent,type ReactNode} from 'react';
+import type {PracticeEntry} from '../../domain/events.ts';
 import {summarizeCourse} from '../../domain/subjects/course.ts';
-import {songsFor} from '../../domain/subjects/practice.ts';
+import {songsFor,summarizePractice} from '../../domain/subjects/practice.ts';
+import {FEELS,OTHER,type Feel} from '../../domain/subjects/types.ts';
+import {FeelIcon} from '../components/Icons.tsx';
 import {CloseButton,Modal} from '../components/Modal.tsx';
-import {courseCelebration,practiceCelebration} from '../celebrations.ts';
-import {bookLabel,courseCopy,itemOf,practiceCopy} from '../subjects.ts';
+import {courseCelebration,moveCelebration,practiceCelebration} from '../celebrations.ts';
+import {choiceLabel,longDay} from '../format.ts';
+import {bookLabel,choicesOf,courseCopy,itemImage,itemName,itemOf,practiceCopy} from '../subjects.ts';
 import {useCourse,useData,usePractice,useSongBank,useToday} from '../state/data.tsx';
 import {useUi,type Editing} from '../state/ui.tsx';
 import {SongPicker} from './SongPicker.tsx';
@@ -30,15 +34,17 @@ function useSave() {
   };
   return {error,saving,submit};
 }
-function Shell({title,titleId,context,error,saving,onSubmit,onDone,children}:{title:string;titleId:string;context?:string;error:string;saving:boolean;onSubmit(event:FormEvent):void;onDone():void;children:ReactNode}) {
+// plain drops the line under the title; footer goes under the save button.
+function Shell({title,titleId,context,error,saving,onSubmit,onDone,plain,footer,children}:{title:string;titleId:string;context?:string;error:string;saving:boolean;onSubmit(event:FormEvent):void;onDone():void;plain?:boolean;footer?:ReactNode;children:ReactNode}) {
   return <form onSubmit={onSubmit}>
     <div className="dialog-header"><span className="label">Check-in</span><CloseButton label="Close check-in" onClick={onDone}/></div>
     <h2 id={titleId}>{title}</h2>
-    <p className="muted">Let’s save what you worked on.</p>
+    {!plain&&<p className="muted">Let’s save what you worked on.</p>}
     {context&&<p className="muted">{context}</p>}
     {children}
     <p className="form-error" role="alert">{error}</p>
     <button type="submit" className="primary save-button" disabled={saving}>Save my check-in</button>
+    {footer}
   </form>;
 }
 const DateField=({start,value,onChange}:{start:string;value:string;onChange(value:string):void})=>{
@@ -94,6 +100,9 @@ function CourseForm({editing,titleId,onDone}:{editing:CourseEditing;titleId:stri
 }
 
 function PracticeForm({editing,titleId,onDone}:{editing:PracticeEditing;titleId:string;onDone():void}) {
+  return editing.subject.minuteChoices?<MoveForm editing={editing} titleId={titleId} onDone={onDone}/>:<YearForm editing={editing} titleId={titleId} onDone={onDone}/>;
+}
+function YearForm({editing,titleId,onDone}:{editing:PracticeEditing;titleId:string;onDone():void}) {
   const {subject,existing}=editing, s=usePractice(subject), bank=useSongBank(), day=useToday(), {mutate}=useData(), ui=useUi(), {error,saving,submit}=useSave();
   const copy=practiceCopy(subject);
   const startItem=():string=>{
@@ -124,7 +133,7 @@ function PracticeForm({editing,titleId,onDone}:{editing:PracticeEditing;titleId:
       <fieldset className="pick-field"><legend>{copy.form.itemLegend}</legend><div className="instrument-cards">
         {subject.items.map(option=><label key={option.id} className="instrument-card">
           <input type="radio" name={subject.itemField} value={option.id} checked={item===option.id} onChange={()=>pickItem(option.id)}/>
-          <span><img src={`/ninja-${option.id}.webp`} alt="" width="64" height="64"/>{option.name}</span>
+          <span><img src={itemImage(subject,option.id)} alt="" width="64" height="64"/>{option.name}</span>
         </label>)}
       </div></fieldset>
       {subject.lessons&&<fieldset className="pick-field"><legend>What kind?</legend><div className="kind-cards">
@@ -139,5 +148,57 @@ function PracticeForm({editing,titleId,onDone}:{editing:PracticeEditing;titleId:
         </fieldset>
         :<label>{copy.form.focus.label} <span className="optional">Optional</span><input maxLength={200} placeholder={copy.form.focus.placeholder} value={focus} onChange={e=>setFocus(e.target.value)}/></label>}
     </div>
+  </Shell>;
+}
+
+// Big buttons for a kid: tap a sport, tap the minutes, maybe a face, save. Date and Other minutes stay one tap away.
+function MoveForm({editing,titleId,onDone}:{editing:PracticeEditing;titleId:string;onDone():void}) {
+  const {subject,existing}=editing, s=usePractice(subject), day=useToday(), {mutate}=useData(), ui=useUi(), {error,saving,submit}=useSave();
+  const copy=practiceCopy(subject), choices=subject.minuteChoices!;
+  const first=existing?itemOf(subject,existing):editing.item??(s.entries.length?itemOf(subject,s.entries.at(-1)!):subject.items[0]!.id);
+  const startMinutes=existing?.minutes??copy.form.defaultMinutes;
+  const [date,setDate]=useState(existing?.date??day), [changingDate,setChangingDate]=useState(false);
+  const [item,setItem]=useState(first), [name,setName]=useState(existing?.name??'');
+  const [choice,setChoice]=useState(choices.includes(startMinutes)?String(startMinutes):'other'), [minutes,setMinutes]=useState(String(startMinutes));
+  const [feel,setFeel]=useState<Feel|''>(existing?.feel??''), [focus,setFocus]=useState(existing?.focus??'');
+  const isOther=item===OTHER;
+
+  const save=submit(async()=>{
+    if(isOther&&!name.trim()) throw new Error(`Type what you did, up to ${subject.other!.maxName} characters.`);
+    const length=Number(choice==='other'?minutes:choice);
+    const entry={subject:subject.id,date,[subject.itemField]:item,minutes:length,...(isOther?{name}:{}),...(feel?{feel}:{}),focus,note:existing?.note??''};
+    const next=await mutate('save',editing.id,entry);
+    onDone();
+    if(existing) ui.toast('Saved!');
+    else ui.celebrate(moveCelebration(subject,{...entry,name:name.trim(),id:editing.id,seq:0} as PracticeEntry,s,summarizePractice(subject,next.entries,day)));
+  });
+  const when=<p className="form-date muted">
+    {changingDate?<DateField start={subject.start} value={date} onChange={setDate}/>
+      :<>{date===day?`Today, ${longDay(day)}`:longDay(date)} · <button type="button" className="link-button" onClick={()=>setChangingDate(true)}>change date</button></>}
+  </p>;
+  return <Shell title={existing?copy.form.title('practice',true):`Nice! Tell me about ${copy.form.about?.[item]??'it'}.`} titleId={titleId} plain footer={when} error={error} saving={saving} onSubmit={save} onDone={onDone}>
+    <fieldset className="pick-field"><legend>{copy.form.itemLegend}</legend><div className="instrument-cards">
+      {choicesOf(subject).map(option=><label key={option.id} className="instrument-card">
+        <input type="radio" name={subject.itemField} value={option.id} checked={item===option.id} onChange={()=>setItem(option.id)}/>
+        <span><img src={itemImage(subject,option.id)} alt="" width="64" height="64"/>{option.name}</span>
+      </label>)}
+    </div>
+    {!existing&&editing.item&&item===editing.item&&copy.form.picked&&<p className="small muted pick-hint">{copy.form.picked(itemName(subject,item))}</p>}
+    </fieldset>
+    {isOther&&<label>{copy.other!.label}<input maxLength={subject.other!.maxName} placeholder={copy.other!.placeholder} required value={name} onChange={e=>setName(e.target.value)}/></label>}
+    <fieldset className="pick-field"><legend>How long?</legend><div className="minute-chips">
+      {[...choices.map(String),'other'].map(value=><label key={value} className="chip">
+        <input type="radio" name="minutes" value={value} checked={choice===value} onChange={()=>setChoice(value)}/><span>{value==='other'?'Other':choiceLabel(Number(value))}</span>
+      </label>)}
+    </div>
+    {choice==='other'&&<label className="other-minutes">Minutes<input type="number" min="1" max={subject.maxMinutes} step="1" inputMode="numeric" required value={minutes} onChange={e=>setMinutes(e.target.value)}/></label>}
+    </fieldset>
+    {subject.feel&&<fieldset className="pick-field"><legend>How did it feel? <span className="optional">Optional</span></legend><div className="feel-cards">
+      {FEELS.map(f=><label key={f} className={`feel-card ${f}`}>
+        <input type="radio" name="feel" value={f} checked={feel===f} onChange={()=>setFeel(f)} onClick={()=>{if(feel===f) setFeel('');}}/>
+        <span><FeelIcon feel={f}/>{copy.feel![f]}</span>
+      </label>)}
+    </div></fieldset>}
+    <label>{copy.form.focus.label} <span className="optional">Optional</span><input maxLength={200} placeholder={copy.form.focus.placeholder} value={focus} onChange={e=>setFocus(e.target.value)}/></label>
   </Shell>;
 }

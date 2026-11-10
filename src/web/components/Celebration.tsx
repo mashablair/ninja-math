@@ -1,5 +1,7 @@
 import {useEffect,useId,useMemo,useRef,useState,type CSSProperties} from 'react';
 import {calmEffects} from '../tweaks.ts';
+import {cx,plural} from '../format.ts';
+import {BadgeMedal} from './Badges.tsx';
 import type {Celebration} from '../state/ui.tsx';
 import {Modal} from './Modal.tsx';
 
@@ -29,13 +31,17 @@ export function CelebrationDialog({celebration,open,onClose}:{celebration:(Celeb
   const c=celebration;
   return <Modal open={open} onClose={onClose} className="celebration" labelledBy={title}>
     <div className="confetti" aria-hidden="true">{pieces}</div>
-    <div className="unicorn-flight" aria-hidden="true" key={c?.key}><span className="rainbow"></span><img src={c?.mascot??'/unicorn.svg'} alt="" width="220" height="165"/></div>
+    <div className={cx('unicorn-flight',c?.round&&'round')} aria-hidden="true" key={c?.key}><span className="rainbow"></span><img src={c?.mascot??'/unicorn.svg'} alt="" width="220" height="165"/></div>
     <div className="celebration-card">
-      <div className="big-sticker">{c?.sticker}</div>
+      <div className="big-sticker">{c?.sticker}{c?.unit&&<small>{c.unit}</small>}</div>
       <h2 id={title}>{c?.title}</h2>
       <p>{c?.message}</p>
+      {c?.badge&&<div className="new-badge">
+        <BadgeMedal look={c.badge} earned/>
+        <div><span className="label">New badge!</span><strong>{c.badge.name}</strong><span>{c.badge.detail}{c.badge.more?` · and ${plural(c.badge.more,'more badge')}`:''}</span></div>
+      </div>}
       <div className="celebrate-progress" hidden={c?.label==null}>
-        <div className="celebrate-row"><span>{c?.label}</span><span>{c?.percent}%</span></div>
+        <div className="celebrate-row"><span>{c?.label}</span><span>{c?.value??`${c?.percent}%`}</span></div>
         <div className="celebrate-bar"><span style={{width:`${bar}%`}}></span></div>
         <p className="muted">{c?.count}</p>
       </div>

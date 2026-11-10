@@ -39,6 +39,21 @@ export interface PracticeSubject {
   // A song bank per item; a practice names songs from it or says what was practiced.
   songs?:{starting:Song[];maxTitle:number;maxPerLog:number};
   labels:{items:string;minutes:string;focus:string};
+  // 'month' shows one month with a ninja on each active day; 'year' shows a year-long grid per item.
+  layout?:'year'|'month';
+  // Big minute buttons instead of a number box; Other still opens the box.
+  minuteChoices?:number[];
+  // "Something else": an activity outside the list, named by her.
+  other?:{maxName:number};
+  // Asks how it felt: tough, good, or amazing.
+  feel?:boolean;
+  // She may set a goal of days per week.
+  goal?:boolean;
+  // Badges earned from what she logs; mix is how many different activities in one week earn "Mix it up".
+  badges?:{mix:number};
 }
+export const FEELS=['tough','good','amazing'] as const;
+export type Feel=typeof FEELS[number];
+export const OTHER='other';
 export type Subject=CourseSubject|PracticeSubject;
 export interface Student {id:string;name:string;timezone:string;subjects:Subject[]}

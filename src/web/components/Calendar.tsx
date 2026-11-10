@@ -5,7 +5,7 @@ import type {CalendarDay} from '../../domain/calendar.ts';
 import {practiceCalendar,type BankSong} from '../../domain/subjects/practice.ts';
 import type {Item,PracticeSubject} from '../../domain/subjects/types.ts';
 import {cx,longDay,monthLabel,plural} from '../format.ts';
-import {kindLabel,practiceText} from '../subjects.ts';
+import {itemImage,kindLabel,practiceText} from '../subjects.ts';
 import {useData} from '../state/data.tsx';
 
 export interface Picked {item:string;date:Day}
@@ -26,7 +26,7 @@ export function Calendar({subject,item,day,bank,picked,onPick}:{subject:Practice
   };
   return <div className="practice-instrument">
     <div className="practice-top">
-      <div className="practice-name"><img src={`/ninja-${item.id}.webp`} alt="" width="56" height="56"/><strong>{item.name}</strong></div>
+      <div className="practice-name"><img src={itemImage(subject,item.id)} alt="" width="56" height="56"/><strong>{item.name}</strong></div>
       <span className="muted">{calendar.days?`${plural(calendar.days,'day')} of ${item.name.toLowerCase()} in the last year`:`Your ${item.name.toLowerCase()} days will show up here.`}</span>
     </div>
     <div className="heatmap">

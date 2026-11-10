@@ -1,6 +1,6 @@
 import {NINJA} from '../domain/student.ts';
 import type {Entry,PracticeEntry} from '../domain/events.ts';
-import type {CourseSubject,PracticeSubject,Subject} from '../domain/subjects/types.ts';
+import {OTHER,type CourseSubject,type Item,type PracticeSubject,type Subject} from '../domain/subjects/types.ts';
 import type {BankSong} from '../domain/subjects/practice.ts';
 import type {CourseCopy,PracticeCopy} from './messages/types.ts';
 import {math} from './messages/math.ts';
@@ -20,7 +20,14 @@ export const entriesOf=(subject:Subject,entries:readonly Entry[])=>entries.filte
 export const bookLabel=(subject:CourseSubject,book:number)=>`${subject.name} ${book}`;
 export const bookOf=(subject:CourseSubject,entry:Entry)=>Number(entry[subject.bookField]??subject.books[0]!.id);
 export const itemOf=(subject:PracticeSubject,entry:Entry)=>String(entry[subject.itemField]);
-export const itemName=(subject:PracticeSubject,id:string)=>subject.items.find(item=>item.id===id)?.name??subject.name;
+export const itemName=(subject:PracticeSubject,id:string)=>id===OTHER&&subject.other?practiceCopy(subject).other!.name:subject.items.find(item=>item.id===id)?.name??subject.name;
+// The listed items, then "Something else" when the subject has it.
+export const choicesOf=(subject:PracticeSubject):Item[]=>[...subject.items,...(subject.other?[{id:OTHER,name:itemName(subject,OTHER)}]:[])];
+export const itemImage=(subject:PracticeSubject,id:string)=>id===OTHER&&subject.other?practiceCopy(subject).other!.image:`/ninja-${id}.webp`;
+// One of the subject's items, for counts: "3 different sports".
+export const itemNoun=(subject:PracticeSubject)=>subject.labels.items.replace(/s$/,'');
+// What she did, in her words for "Something else".
+export const entryLabel=(subject:PracticeSubject,entry:PracticeEntry)=>itemOf(subject,entry)===OTHER&&entry.name?entry.name:itemName(subject,itemOf(subject,entry));
 export const kindLabel=(entry:PracticeEntry)=>entry.kind==='lesson'?'Lesson with teacher':'Practice';
 // What was played or done: song names from the bank, then the free text.
 export const practiceText=(entry:PracticeEntry,bank:readonly BankSong[])=>

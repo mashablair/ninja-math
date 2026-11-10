@@ -2,7 +2,7 @@ import {z} from 'zod';
 import {today,isRealDay,longDate} from './dates.ts';
 import {ValidationError} from './errors.ts';
 import {NINJA,subjectOf} from './student.ts';
-import type {CourseSubject,PracticeSubject,Student} from './subjects/types.ts';
+import {FEELS,OTHER,type CourseSubject,type PracticeSubject,type Student} from './subjects/types.ts';
 
 // Saved entries carry a format version so later changes can upgrade old ones when they are read.
 export const ENTRY_VERSION=1;
@@ -47,9 +47,11 @@ function courseSchema(subject:CourseSubject,timeZone:string) {
 }
 
 function practiceSchema(subject:PracticeSubject,timeZone:string) {
-  const field=subject.itemField, ids=subject.items.map(item=>item.id) as [string,...string[]];
+  const field=subject.itemField, other=subject.other, ids=[...subject.items.map(item=>item.id),...(other?[OTHER]:[])] as [string,...string[]];
   const MINUTES=`Choose the minutes you ${subject.labels.minutes}, from 1 to ${subject.maxMinutes}.`, FOCUS=`Keep ${subject.labels.focus} under 200 characters.`;
   const songs=subject.songs, SONGS=`Choose the songs you ${subject.labels.minutes}.`;
+  const NAME=`Type what you did, up to ${other?.maxName} characters.`, FEEL='Choose tough, good, or amazing.';
+  const isOther=(entry:Record<string,unknown>)=>!!other&&entry[field]===OTHER;
   return z.object({
     subject:z.literal(subject.id),
     date:day(subject.start,timeZone),
@@ -57,10 +59,29 @@ function practiceSchema(subject:PracticeSubject,timeZone:string) {
     ...(subject.lessons?{kind:z.enum(['practice','lesson'],{error:'Choose practice or a lesson with your teacher.'})}:{}),
     minutes:z.number({error:MINUTES}).int({error:MINUTES}).min(1,{error:MINUTES}).max(subject.maxMinutes,{error:MINUTES}),
     ...(songs?{songs:z.array(z.string({error:SONGS}).regex(ID,{error:SONGS}),{error:SONGS}).max(songs.maxPerLog,{error:SONGS}).default([]).transform(list=>[...new Set(list)])}:{}),
+    ...(other?{name:z.string({error:NAME}).trim().max(other.maxName,{error:NAME}).optional()}:{}),
+    ...(subject.feel?{feel:z.enum(FEELS,{error:FEEL}).optional()}:{}),
     focus:z.string({error:FOCUS}).max(200,{error:FOCUS}).transform(s=>s.trim()),
     note
   }).superRefine((entry,ctx)=>{
     if(songs&&!(entry.songs as string[]).length&&!entry.focus) ctx.addIssue({code:'custom',message:`Choose a song or write ${subject.labels.focus}.`});
+    if(isOther(entry)&&!entry.name) ctx.addIssue({code:'custom',message:NAME});
+  }).transform(entry=>{
+    const saved:Record<string,unknown>={v:ENTRY_VERSION,...entry};
+    // Only "Something else" keeps a name, and a feeling is saved only when she picked one.
+    if(!isOther(entry)) delete saved.name;
+    if(saved.feel===undefined) delete saved.feel;
+    return saved;
+  });
+}
+
+function goalSchema(student:Student) {
+  const owners=student.subjects.filter(s=>s.type==='practice'&&s.goal).map(s=>s.id) as [string,...string[]];
+  const DAYS='Choose a goal from 1 to 7 days a week.';
+  return z.object({
+    subject:z.literal('goal'),
+    of:z.enum(owners,{error:'Choose a valid subject for this goal.'}),
+    days:z.number({error:DAYS}).int({error:DAYS}).min(1,{error:DAYS}).max(7,{error:DAYS})
   }).transform(entry=>({v:ENTRY_VERSION,...entry}));
 }
 
@@ -80,6 +101,7 @@ export function schemaFor(input:Record<string,unknown>,student:Student=NINJA) {
     const owner=student.subjects.find((s):s is PracticeSubject=>s.type==='practice'&&!!s.songs);
     return owner?songSchema(owner):null;
   }
+  if(input.subject==='goal') return student.subjects.some(s=>s.type==='practice'&&s.goal)?goalSchema(student):null;
   const subject=subjectOf(student,input.subject);
   if(!subject) return null;
   return subject.type==='course'?courseSchema(subject,student.timezone):practiceSchema(subject,student.timezone);

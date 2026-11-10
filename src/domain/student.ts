@@ -34,7 +34,8 @@ export const SPORTS:PracticeSubject={
     {id:'snorkeling',name:'Snorkeling'},
     {id:'water-skiing',name:'Water skiing'}
   ],
-  labels:{items:'sports',minutes:'moved',focus:'what you did'}
+  labels:{items:'sports',minutes:'moved',focus:'what you did'},
+  layout:'month',minuteChoices:[15,30,45,60,90],other:{maxName:40},feel:true,goal:true,badges:{mix:3}
 };
 export const NINJA:Student={id:'ninja',name:'Ninja',timezone:'America/New_York',subjects:[MATH,ENGLISH,MUSIC,SPORTS]};
 
