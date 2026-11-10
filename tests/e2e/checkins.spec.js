@@ -28,7 +28,7 @@ async function celebrated(page,title){
   await expect(page.getByRole('heading',{name:title})).toBeVisible();
   await button(page,'Yay!').click();
 }
-const tile=(page,name)=>page.getByRole('group',{name:'What did you do today?'}).getByRole('button',{name,exact:true});
+const tile=(page,name,group='What did you do today?')=>page.getByRole('group',{name:group}).getByRole('button',{name,exact:true});
 const calendarDay=(page,text)=>page.getByRole('button',{name:new RegExp(`^[A-Z][a-z]+day, [A-Z][a-z]+ \\d+: ${text}$`)});
 
 test('looking is public, saving needs the login',async({page})=>{
@@ -77,47 +77,64 @@ test('english: finishing lesson 23 earns a sticker',async({page})=>{
   await expect(button(page,'English 5, lesson 23, finished')).toBeVisible();
 });
 
-test('music: a saxophone practice with a song from the bank',async({page})=>{
-  await open(page,'Music');
-  await page.getByRole('button',{name:/I practiced/}).click();
-  await logIn(page);
-  await pick(page,'radio','Saxophone');
-  await pick(page,'checkbox','Ragtime');
-  await page.getByRole('spinbutton',{name:'Minutes'}).fill('20');
-  await save(page);
-  await celebrated(page,'Saxophone practice saved!');
-  await expect(page.locator('.music-row').filter({hasText:'Ragtime'})).toBeVisible();
-  await expect(calendarDay(page,'20 min of saxophone')).toHaveClass(/\bl2\b/);
+// The music and sports tests each share one page, so they log in once: the login allows 8 tries a minute per address.
+test.describe('music',()=>{
+  let page;
+  test.beforeAll(async({browser})=>{page=await browser.newPage();});
+  test.afterAll(async()=>{await page.close();});
+
+  test('music: tap an instrument, pick a song and the minutes, and earn a badge',async()=>{
+    await open(page,'Music');
+    await tile(page,'Saxophone','What did you play today?').click();
+    await logIn(page);
+    await expect(page.getByRole('heading',{name:'Nice! Tell me about your saxophone practice.'})).toBeVisible();
+    await expect(page.getByRole('radio',{name:'10 min'})).toBeChecked();
+    await pick(page,'checkbox','Ragtime');
+    await pick(page,'radio','20 min');
+    await pick(page,'radio','Good');
+    await save(page);
+    await expect(page.locator('.new-badge')).toContainText('Sax ninja');
+    await celebrated(page,'Saxophone practice saved!');
+    await expect(page.locator('.saved-today')).toContainText('20 min · Ragtime');
+    await expect(calendarDay(page,'Saxophone 20 min')).toHaveClass(/\bmoved\b/);
+  });
+
+  test('music: a teacher lesson skips the minutes and counts 30',async()=>{
+    await open(page,'Music');
+    await page.getByRole('button',{name:/Lesson with my teacher/}).click();
+    await expect(page.getByRole('heading',{name:'A lesson with your teacher.'})).toBeVisible();
+    await expect(page.getByRole('radio',{name:'10 min'})).toHaveCount(0);
+    await pick(page,'radio','Piano');
+    await page.getByRole('textbox',{name:'Anything else you worked on'}).fill('Scales');
+    await save(page);
+    await celebrated(page,'Piano lesson saved!');
+    await expect(page.locator('.saved-today')).toContainText('Lesson with teacher · 30 min · Scales');
+    await expect(calendarDay(page,'Saxophone 20 min, Piano 30 min lesson').locator('.month-lesson')).toBeVisible();
+  });
+
+  test('music: a new song is added to the bank',async()=>{
+    await open(page,'Music');
+    await tile(page,'Flute','What did you play today?').click();
+    await button(page,'+ Add a song').click();
+    await page.getByRole('textbox',{name:'New song name'}).fill('Greensleeves');
+    await button(page,'Add').click();
+    await expect(page.getByRole('checkbox',{name:'Greensleeves'})).toBeChecked();
+    await save(page);
+    await expect(page.locator('.new-badge')).toContainText('Flute ninja');
+    await celebrated(page,'Flute practice saved!');
+    await expect(page.locator('.badge-grid .earned').filter({hasText:'Triple play'})).toBeVisible();
+  });
+
+  test('music: for mom counts lessons and prints the songs',async()=>{
+    await open(page,'Music');
+    await button(page,'For Mom').click();
+    const log=page.locator('.print-log');
+    await expect(log.getByRole('row').filter({hasText:'Saxophone'})).toContainText('Ragtime');
+    await expect(log.getByRole('row').filter({hasText:'Piano'})).toContainText('lesson with teacher');
+    await expect(page.getByRole('columnheader',{name:'Lessons'})).toBeVisible();
+  });
 });
 
-test('music: a teacher lesson hides minutes and counts 30',async({page})=>{
-  await open(page,'Music');
-  await page.getByRole('button',{name:/Lesson with my teacher/}).click();
-  await logIn(page);
-  await expect(button(page,'Save my check-in')).toBeVisible();
-  await expect(page.getByRole('spinbutton',{name:'Minutes'})).toHaveCount(0);
-  await pick(page,'radio','Piano');
-  await page.getByRole('textbox',{name:'Anything else you worked on'}).fill('Scales');
-  await save(page);
-  await celebrated(page,'Piano lesson saved!');
-  await expect(page.locator('.music-row').filter({hasText:'Lesson with teacher · 30 min'})).toBeVisible();
-  await expect(calendarDay(page,'30 min of piano, with a lesson')).toHaveClass(/hm-lesson/);
-});
-
-test('music: a new song is added to the bank',async({page})=>{
-  await open(page,'Music');
-  await page.getByRole('button',{name:/I practiced/}).click();
-  await logIn(page);
-  await pick(page,'radio','Flute');
-  await button(page,'+ Add a song').click();
-  await page.getByRole('textbox',{name:'New song name'}).fill('Greensleeves');
-  await button(page,'Add').click();
-  await expect(page.getByRole('checkbox',{name:'Greensleeves'})).toBeChecked();
-  await save(page);
-  await celebrated(page,'Flute practice saved!');
-});
-
-// The sports tests share one page, so they log in once: the login allows 8 tries a minute per address.
 test.describe('sports',()=>{
   let page;
   test.beforeAll(async({browser})=>{page=await browser.newPage();});

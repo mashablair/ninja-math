@@ -12,7 +12,6 @@
   --check-bg:#fff2cc;--check-ink:#6b4e0a;--check-line:#c99a2e;
   --quick-bg:#fff8e5;--quick-line:#f1dfae;
   --up-ink:#6f6880;--up-line:#e3dee8;
-  --hm-0:#eeeaf2;--hm-g1:#c8ecd6;--hm-g2:#8fd6b0;--hm-g3:#4fb582;--hm-g4:#2a8a5a;--hm-o1:#ffd9bd;--hm-o2:#ffb27d;--hm-o3:#f68a45;--hm-o4:#d9651f;
   --danger:#a33e59;--shadow:0 2px 12px rgba(43,37,64,.05);--backdrop:rgba(43,37,64,.45);
   --accent:var(--a);--on-accent:var(--on-a);--accent-mid:var(--a-mid);--accent-text:var(--a-text-l);--tint:var(--tint-l);--tint-2:var(--tint2-l);
   color-scheme:light;font-family:var(--font);color:var(--ink);background:var(--bg);
@@ -30,7 +29,6 @@
   --check-bg:#3a3017;--check-ink:#f5d78a;--check-line:#a8842e;
   --quick-bg:#2c2616;--quick-line:#54461d;
   --up-ink:#a79fb6;--up-line:#3a3347;
-  --hm-0:#2e2939;--hm-g1:#1f4a33;--hm-g2:#2d6e49;--hm-g3:#45a36a;--hm-g4:#7fdca4;--hm-o1:#5a3418;--hm-o2:#87491d;--hm-o3:#c96c2b;--hm-o4:#ffa863;
   --danger:#ff9db4;--shadow:0 2px 14px rgba(0,0,0,.3);--backdrop:rgba(8,6,12,.6);
   --accent-text:var(--a-text-d);--tint:var(--tint-d);--tint-2:var(--tint2-d);
 }
@@ -44,7 +42,6 @@
     --check-bg:#3a3017;--check-ink:#f5d78a;--check-line:#a8842e;
     --quick-bg:#2c2616;--quick-line:#54461d;
     --up-ink:#a79fb6;--up-line:#3a3347;
-    --hm-0:#2e2939;--hm-g1:#1f4a33;--hm-g2:#2d6e49;--hm-g3:#45a36a;--hm-g4:#7fdca4;--hm-o1:#5a3418;--hm-o2:#87491d;--hm-o3:#c96c2b;--hm-o4:#ffa863;
     --danger:#ff9db4;--shadow:0 2px 14px rgba(0,0,0,.3);--backdrop:rgba(8,6,12,.6);
     --accent-text:var(--a-text-d);--tint:var(--tint-d);--tint-2:var(--tint2-d);
   }
@@ -104,8 +101,6 @@ main{max-width:1240px;margin:0 auto;padding:0 28px}
 .lesson-book{font-size:1.15rem;font-weight:800;color:var(--muted)}
 .checkin-card > p.muted.next-subtitle{margin:10px 0 18px;font-size:1.05rem}
 .checkin-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
-.two-actions{grid-template-columns:repeat(2,minmax(0,1fr))}
-.one-action{grid-template-columns:minmax(0,360px)}
 .music-today{display:flex;flex-direction:column;gap:10px;margin:14px 0 18px}
 .music-row{display:flex;align-items:center;gap:12px;background:var(--surface-2);border-radius:16px;padding:12px 14px}
 .music-row div{flex:1;min-width:0}
@@ -113,39 +108,9 @@ main{max-width:1240px;margin:0 auto;padding:0 28px}
 .music-row span,.music-row p{color:var(--muted);font-weight:700}
 .music-row p{margin:4px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
 .music-row button{border:0;border-radius:12px;background:var(--surface);min-height:44px;padding:0 14px;font-size:.95rem;font-weight:750}
-.music-minutes{display:flex;flex-direction:column;gap:10px;margin-top:14px}
-.music-minutes div{display:flex;justify-content:space-between;gap:12px;font-weight:800}
-.music-lessons{margin-top:20px}
-.practice-card{--cell:12px;--gap:3px}
-.practice-card > p.muted{margin:6px 0 0}
-.practice-calendars{display:flex;flex-direction:column;gap:22px;margin-top:18px}
-.practice-top{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px 12px;margin-bottom:8px}
-.practice-name{display:flex;align-items:center;gap:10px}
-.practice-name img{width:56px;height:56px;flex:none;padding:3px;border-radius:18px;background:color-mix(in srgb,var(--a) 30%,#fff)}
-.practice-top strong{font-size:1.1rem}
-.practice-top span{font-size:.9rem;font-weight:700}
-.heatmap{display:flex;gap:6px}
-.hm-days,.hm-grid{display:grid;grid-template-rows:repeat(7,var(--cell));gap:var(--gap)}
-.hm-days{padding-top:calc(1rem + 4px);font-size:.7rem;font-weight:800;color:var(--muted);line-height:var(--cell)}
-.hm-scroll{overflow-x:auto;min-width:0;padding-bottom:4px;scrollbar-width:thin}
-.hm-months{display:grid;grid-template-columns:repeat(53,var(--cell));gap:var(--gap);height:1rem;margin-bottom:4px;font-size:.75rem;font-weight:800;color:var(--muted);white-space:nowrap}
-.hm-months span{overflow:visible}
-.hm-grid{grid-auto-flow:column;grid-auto-columns:var(--cell);width:max-content}
-.hm-cell{display:block;width:var(--cell);height:var(--cell);border:0;padding:0;border-radius:3px;background:var(--hm-0);cursor:pointer}
-.hm-cell.future{visibility:hidden}
-.hm-cell.l1{background:var(--hm-g1)}.hm-cell.l2{background:var(--hm-g2)}.hm-cell.l3{background:var(--hm-g3)}.hm-cell.l4{background:var(--hm-g4)}
-.hm-cell.hm-lesson.l1{background:var(--hm-o1)}.hm-cell.hm-lesson.l2{background:var(--hm-o2)}.hm-cell.hm-lesson.l3{background:var(--hm-o3)}.hm-cell.hm-lesson.l4{background:var(--hm-o4)}
-.hm-legend .hm-cell{flex:none}
-.hm-cell.current{box-shadow:0 0 0 1.5px var(--accent-text)}
-.hm-cell.selected,.hm-cell:focus-visible{outline:2px solid var(--ink);outline-offset:1px}
 .hm-detail{display:flex;flex-direction:column;gap:2px;margin:10px 0 0;background:var(--surface-2);border-radius:14px;padding:10px 14px;font-weight:700;color:var(--muted)}
 .hm-detail strong{color:var(--ink)}
 .hm-detail span{overflow-wrap:anywhere}
-.hm-legend{display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin-top:18px;font-size:.8rem;font-weight:800;color:var(--muted)}
-.hm-legend .hm-cell{cursor:default}
-.hm-legend > span:first-child{margin-right:2px}
-.hm-legend > span:nth-child(7){margin:0 14px 0 2px}
-.hm-key{display:inline-flex;align-items:center;gap:5px;margin-right:12px}
 .card .practice-heading{font-size:2rem;margin-top:6px}
 .checkin-card > p.muted{margin:10px 0 0}
 .history-symbol.lesson{background:var(--tint);color:var(--accent-text);font-size:1.4rem}
@@ -168,6 +133,11 @@ main{max-width:1240px;margin:0 auto;padding:0 28px}
 .sport-tile img{width:min(80px,100%);height:auto;aspect-ratio:1;border-radius:20px;background:color-mix(in srgb,var(--a) 30%,#fff)}
 .sport-tile:hover:not(:disabled){border-color:var(--accent-text);background:var(--tint)}
 .sport-tile.other{border-style:dashed}
+@container (min-width:600px){.sport-tiles.few{grid-template-columns:repeat(3,minmax(0,170px))}}
+.lesson-button{display:flex;align-items:center;gap:12px;width:100%;margin-top:12px;padding:12px 16px;border:0;border-radius:18px;background:var(--peach-bg);color:var(--peach-ink);text-align:left}
+.lesson-button .action-icon{flex:none;background:var(--peach-dot)}
+.lesson-button strong{font-size:1.05rem;font-weight:800}
+.lesson-button small{margin-left:auto;font-size:.9rem;font-weight:650}
 .saved-today{margin-top:22px}
 .saved-today .music-today{margin:10px 0 0}
 .saved-today .music-row img,.week-activities img{flex:none;border-radius:14px;background:color-mix(in srgb,var(--a) 30%,#fff)}
@@ -188,7 +158,7 @@ main{max-width:1240px;margin:0 auto;padding:0 28px}
 .month-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;margin-top:14px}
 .month-weekday{text-align:center;font-size:.9rem;font-weight:800;color:var(--muted);padding-bottom:2px}
 .month-day{position:relative;display:block;min-width:0;aspect-ratio:1/.82;padding:0;border:1.5px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);text-align:left}
-.month-day i{position:absolute;top:6px;left:9px;font-style:normal;font-size:.85rem;font-weight:800}
+.month-day i{position:absolute;z-index:1;top:6px;left:9px;font-style:normal;font-size:.85rem;font-weight:800}
 .month-day.blank{border:0;background:none}
 .month-day.future{border-style:dashed;opacity:.5}
 .month-day.future i{color:var(--muted)}
@@ -197,7 +167,9 @@ main{max-width:1240px;margin:0 auto;padding:0 28px}
 .month-day.selected,.month-day:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
 .month-ninjas{position:absolute;inset:22% 8% 8%;display:flex;align-items:center;justify-content:center;gap:4px}
 .month-ninjas img{height:100%;max-height:52px;width:auto;aspect-ratio:1;border-radius:12px;background:#fff;object-fit:cover}
+.month-ninjas.many{top:32%}
 .month-ninjas.many img{max-height:38px;max-width:46%}
+.month-lesson{position:absolute;top:5px;right:8px;font-size:.85rem;line-height:1}
 .month-hint{margin:12px 0 0;font-size:.95rem}
 .this-week .week-strip{margin-top:12px;gap:4px}
 .this-week .day span{width:min(36px,100%);height:auto;aspect-ratio:1}
@@ -524,6 +496,7 @@ dialog.celebration[open]{display:grid}
   .month-ninjas{inset:18% 3% 3%}
   .month-ninjas.many img+img{display:none}
   .month-ninjas.many img{max-width:none}
+  .lesson-button small{display:none}
   .log-tools{flex-wrap:wrap}
   .instrument-cards{grid-template-columns:repeat(2,minmax(0,1fr))}
 }

@@ -24,7 +24,7 @@ export interface CourseSubject {
   askTopic?:boolean;
 }
 export interface Song {id:string;title:string;[itemField:string]:string}
-// Open-ended practice with minutes per activity and a year-long calendar (Music, Sports).
+// Open-ended practice with minutes per activity, shown a month at a time (Music, Sports).
 export interface PracticeSubject {
   type:'practice';
   id:string;
@@ -39,10 +39,8 @@ export interface PracticeSubject {
   // A song bank per item; a practice names songs from it or says what was practiced.
   songs?:{starting:Song[];maxTitle:number;maxPerLog:number};
   labels:{items:string;minutes:string;focus:string};
-  // 'month' shows one month with a ninja on each active day; 'year' shows a year-long grid per item.
-  layout?:'year'|'month';
   // Big minute buttons instead of a number box; Other still opens the box.
-  minuteChoices?:number[];
+  minuteChoices:number[];
   // "Something else": an activity outside the list, named by her.
   other?:{maxName:number};
   // Asks how it felt: tough, good, or amazing.

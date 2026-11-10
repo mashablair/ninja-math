@@ -23,7 +23,8 @@ export const MUSIC:PracticeSubject={
     {id:'song-saxophone-in-the-mood',instrument:'saxophone',title:'In the Mood'},
     {id:'song-saxophone-satin-doll',instrument:'saxophone',title:'Satin Doll'}
   ]},
-  labels:{items:'instruments',minutes:'practiced',focus:'what you practiced'}
+  labels:{items:'instruments',minutes:'practiced',focus:'what you practiced'},
+  minuteChoices:[5,10,15,20,30],feel:true,goal:true,badges:{mix:3}
 };
 export const SPORTS:PracticeSubject={
   type:'practice',id:'sports',name:'Sports',start:'2026-11-03',itemField:'activity',maxMinutes:300,
@@ -35,7 +36,7 @@ export const SPORTS:PracticeSubject={
     {id:'water-skiing',name:'Water skiing'}
   ],
   labels:{items:'sports',minutes:'moved',focus:'what you did'},
-  layout:'month',minuteChoices:[15,30,45,60,90],other:{maxName:40},feel:true,goal:true,badges:{mix:3}
+  minuteChoices:[15,30,45,60,90],other:{maxName:40},feel:true,goal:true,badges:{mix:3}
 };
 export const NINJA:Student={id:'ninja',name:'Ninja',timezone:'America/New_York',subjects:[MATH,ENGLISH,MUSIC,SPORTS]};
 

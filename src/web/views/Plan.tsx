@@ -2,15 +2,13 @@ import {Fragment,useId,type CSSProperties} from 'react';
 import {addDays,pretty,type Day} from '../../domain/dates.ts';
 import {MATH,ENGLISH} from '../../domain/student.ts';
 import {percentOf,type CourseSummary} from '../../domain/subjects/course.ts';
-import type {PracticeEntry} from '../../domain/events.ts';
 import type {CourseSubject,PracticeSubject,Subject} from '../../domain/subjects/types.ts';
 import {SubjectTabs} from '../components/SubjectTabs.tsx';
 import {cx,num,plural,versusTarget} from '../format.ts';
 import {STUDENT,bookLabel,courseCopy,itemName,itemOf,practiceCopy,practiceText} from '../subjects.ts';
 import {useCourse,useData,usePractice,useSongBank,useToday} from '../state/data.tsx';
 import type {CourseCopy} from '../messages/types.ts';
-import {MinutesList} from './PracticeToday.tsx';
-import {MovePlan} from './MovePlan.tsx';
+import {PracticePlan} from './PracticePlan.tsx';
 
 function Goals({subject,s}:{subject:CourseSubject;s:CourseSummary}) {
   const tagline=courseCopy(subject).plan.taglines;
@@ -85,29 +83,6 @@ function CoursePlan({subject}:{subject:CourseSubject}) {
   </>;
 }
 
-function PracticePlan({subject}:{subject:PracticeSubject}) {
-  return subject.layout==='month'?<MovePlan subject={subject}/>:<YearPlan subject={subject}/>;
-}
-function YearPlan({subject}:{subject:PracticeSubject}) {
-  const s=usePractice(subject), bank=useSongBank();
-  const lessons=[...s.lessons].reverse() as PracticeEntry[];
-  return <>
-    <section className="card">
-      <h2>This week</h2>
-      <MinutesList subject={subject} minutes={s.minutes}/>
-      <p className="goal-foot">Minutes reset with the new week. A day with no log stays empty.</p>
-    </section>
-    {subject.lessons&&<section className="card music-lessons">
-      <h2>Lessons with a teacher</h2>
-      <div>{lessons.length?lessons.map(entry=>{const text=practiceText(entry,bank);
-        return <article key={entry.id} className="history-item">
-          <span className="history-symbol lesson">♪</span>
-          <div className="history-body"><h3>{itemName(subject,itemOf(subject,entry))} · {entry.minutes} min</h3><small>{pretty(entry.date,true)}</small>{text&&<p>{text}</p>}</div>
-        </article>;}):<p className="muted">Teacher lessons will show up here.</p>}</div>
-    </section>}
-  </>;
-}
-
 function download(state:object,day:Day) {
   const baseline={date:MATH.start,math5Finished:MATH.books[0]!.baseline,english:{date:ENGLISH.start,level:5,finished:ENGLISH.books[0]!.baseline,lessons:ENGLISH.books[0]!.lessons,target:ENGLISH.books[0]!.target}};
   const blob=new Blob([JSON.stringify({schema:1,exportedAt:new Date().toISOString(),baseline,...state},null,2)],{type:'application/json'});
@@ -122,7 +97,7 @@ export function Plan({subject,onSubject}:{subject:Subject;onSubject(id:string):v
   return <section>
     <div className="page-heading">
       <p className="label">For Mom</p>
-      {subject.type==='practice'&&subject.layout==='month'
+      {subject.type==='practice'
         ?<><h1>{subject.name}</h1><p className="muted">What {STUDENT.name} did, by month, with a log you can print.</p></>
         :<><h1>The plan</h1><p className="muted">Dates, targets and forecasts live here, away from {STUDENT.name}’s screen.</p></>}
     </div>

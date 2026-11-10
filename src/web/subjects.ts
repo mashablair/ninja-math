@@ -3,6 +3,7 @@ import type {Entry,PracticeEntry} from '../domain/events.ts';
 import {OTHER,type CourseSubject,type Item,type PracticeSubject,type Subject} from '../domain/subjects/types.ts';
 import type {BankSong} from '../domain/subjects/practice.ts';
 import type {CourseCopy,PracticeCopy} from './messages/types.ts';
+import {duration} from './format.ts';
 import {math} from './messages/math.ts';
 import {english} from './messages/english.ts';
 import {music} from './messages/music.ts';
@@ -32,5 +33,8 @@ export const kindLabel=(entry:PracticeEntry)=>entry.kind==='lesson'?'Lesson with
 // What was played or done: song names from the bank, then the free text.
 export const practiceText=(entry:PracticeEntry,bank:readonly BankSong[])=>
   [...(entry.songs??[]).map(id=>bank.find(song=>song.id===id)?.title).filter(Boolean),entry.focus].filter(Boolean).join(' · ');
+// One line under the name: a teacher lesson says so, then the time and what was played or done.
+export const entryDetail=(subject:PracticeSubject,entry:PracticeEntry,bank:readonly BankSong[])=>
+  [subject.lessons&&entry.kind==='lesson'?kindLabel(entry):'',duration(entry.minutes),practiceText(entry,bank)].filter(Boolean).join(' · ');
 // The bank's owner; songs are entries of their own.
 export const SONG_SUBJECT=STUDENT.subjects.find((s):s is PracticeSubject=>s.type==='practice'&&!!s.songs);

@@ -2,32 +2,22 @@ import {test} from 'vitest';
 import assert from 'node:assert/strict';
 import {validate} from '../src/domain/validate.ts';
 import {summarizeCourse} from '../src/domain/subjects/course.ts';
-import {summarizePractice,practiceCalendar,totals,badgesFor,earnedBadges,goalOf} from '../src/domain/subjects/practice.ts';
+import {summarizePractice,totals,badgesFor,earnedBadges,goalOf} from '../src/domain/subjects/practice.ts';
 import {monthCalendar} from '../src/domain/calendar.ts';
 import {materialize} from '../src/domain/events.ts';
 import {MATH,MUSIC,SPORTS} from '../src/domain/student.ts';
 const summarize=(entries:any[],asOf:string)=>summarizePractice(SPORTS,entries,asOf);
 const summarizeMusic=(entries:any[],asOf:string)=>summarizePractice(MUSIC,entries,asOf);
 const summarizeMath=(entries:any[],asOf:string)=>summarizeCourse(MATH,entries,asOf);
-const sportsCalendar=(entries:any[],item:string,asOf:string)=>practiceCalendar(SPORTS,entries,item,asOf);
-const ACTIVITIES=SPORTS.items, MAX_SPORT_MINUTES=SPORTS.maxMinutes;
+const MAX_SPORT_MINUTES=SPORTS.maxMinutes;
 const entry=(activity,minutes,date='2026-11-04',seq=1):any=>({subject:'sports',activity,minutes,date,seq,focus:'',note:''});
 const other=(name,minutes,date='2026-11-04',seq=1):any=>({...entry('other',minutes,date,seq),name});
 const earned=(logs:any[])=>Object.fromEntries(earnedBadges(badgesFor(SPORTS,logs)).map(b=>[b.id,b.earned]));
 
-test('sports minutes add up per activity for the current week',()=>{
+test('sports minutes add up per activity for the current week, leaving out last week',()=>{
   const s=summarize([entry('running',20,'2026-11-04',1),entry('running',15,'2026-11-05',2),entry('gym',45,'2026-11-02',3),entry('snorkeling',60,'2026-11-01',4)],'2026-11-05');
-  assert.equal(s.minutes.running,35);assert.equal(s.minutes.gym,45);assert.equal(s.minutes.snorkeling,0);
+  assert.deepEqual(s.week,{days:3,minutes:80,activities:[{item:'gym',minutes:45,days:1},{item:'running',minutes:35,days:2}]});
   assert.equal(s.loggedToday,true);
-  assert.deepEqual(Object.keys(s.minutes),ACTIVITIES.map(item=>item.id));
-});
-test('sports calendar keeps each activity separate and has no lesson days',()=>{
-  const logs=[entry('mountain-biking',30,'2026-11-04',1),entry('mountain-biking',20,'2026-11-04',2),entry('running',10,'2026-11-04',3)];
-  const cal=sportsCalendar(logs,'mountain-biking','2026-11-06');
-  const day=cal.weeks.flat().find(cell=>cell.date==='2026-11-04');
-  assert.equal(day.minutes,50);assert.equal(day.level,4);assert.equal(day.lesson,false);
-  assert.equal(cal.days,1);
-  assert.equal(sportsCalendar(logs,'water-skiing','2026-11-06').days,0);
 });
 test('sports do not change math or music',()=>{
   const logs=[entry('gym',30)];
@@ -55,13 +45,14 @@ test('how it felt is optional and one of three faces',()=>{
   assert.equal('feel' in validate(entry('gym',30)),false);
   assert.equal(validate({...entry('gym',30),feel:'tough'}).feel,'tough');
   assert.throws(()=>validate({...entry('gym',30),feel:'meh'}),/tough, good, or amazing/);
-  assert.equal('feel' in validate({subject:'music',instrument:'piano',kind:'practice',minutes:20,date:'2026-11-04',focus:'Scales',note:'',feel:'good'}),false);
+  assert.equal(validate({subject:'music',instrument:'piano',kind:'practice',minutes:20,date:'2026-11-04',focus:'Scales',note:'',feel:'good'}).feel,'good');
 });
 test('a goal counts days, from 1 to 7, and only for subjects that offer one',()=>{
   assert.deepEqual(validate({subject:'goal',of:'sports',days:3}),{v:1,subject:'goal',of:'sports',days:3});
   assert.throws(()=>validate({subject:'goal',of:'sports',days:0}),/1 to 7/);
   assert.throws(()=>validate({subject:'goal',of:'sports',days:2.5}),/1 to 7/);
-  assert.throws(()=>validate({subject:'goal',of:'music',days:3}),/valid subject/);
+  assert.equal(validate({subject:'goal',of:'music',days:3}).of,'music');
+  assert.throws(()=>validate({subject:'goal',of:'math',days:3}),/valid subject/);
   const events=[
     {seq:1,entry_id:'goal-sports',operation:'save',payload:JSON.stringify({subject:'goal',of:'sports',days:3})},
     {seq:2,entry_id:'goal-sports',operation:'save',payload:JSON.stringify({subject:'goal',of:'sports',days:4})}
@@ -92,7 +83,7 @@ test('the month calendar is Monday-first with blanks around the month',()=>{
 });
 test('badges come only from real logs, with the day each was earned',()=>{
   assert.deepEqual(earned([]),{});
-  assert.equal(badgesFor(MUSIC,[entry('gym',30)]).length,0);
+  assert.equal(earnedBadges(badgesFor(MUSIC,[entry('gym',30)])).length,0);
   const logs=[entry('gym',35,'2026-11-05',1),entry('mountain-biking',30,'2026-11-07',2),entry('running',30,'2026-11-09',3),entry('running',30,'2026-11-10',4)];
   assert.deepEqual(earned(logs),{'first-gym':'2026-11-05','first-mountain-biking':'2026-11-07','first-running':'2026-11-09','month-2026-11':'2026-11-05'});
   // Three different sports in one Monday–Sunday week: running, then gym, then dance on Thursday.
