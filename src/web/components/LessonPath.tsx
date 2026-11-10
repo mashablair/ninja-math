@@ -22,13 +22,13 @@ function UnitPath({subject,s,unit,onLesson}:{subject:CourseSubject;s:CourseSumma
     {row.map(stop=>{
       if(stop==='belt') return <span key="belt" className={cx('path-belt',unit.earned&&'earned')} title={beltName(unit.belt)}><BeltIcon belt={unit.belt} size={44}/></span>;
       const {state,label}=lessonState(subject,s,unit.book,stop), name=lessonTitle(subject,unit.book,stop);
-      const kind=unit.test.includes(stop)?'test':unit.review===stop?'review':'';
+      const kind=unit.test?.includes(stop)?'test':unit.review===stop?'review':unit.projects?.includes(stop)?'project':'';
       const earned=ui.earned?.subject===subject.id&&ui.earned.book===unit.book&&ui.earned.lessons.includes(stop);
       return <span key={stop} className="path-stop">
         {state==='today'&&<img className="path-ninja" src="/peaceful-ninja.png" alt="" width="40" height="40"/>}
         <button type="button" className={cx('lesson','path-node',state,kind,earned&&'just-earned')} title={name?`Lesson ${stop}: ${name}`:`Lesson ${stop}`}
           aria-label={`${bookLabel(subject,unit.book)}, lesson ${stop}, ${label}`} onClick={()=>onLesson(stop)}>
-          {stop}{kind==='review'&&<b aria-hidden="true">★</b>}
+          {stop}{kind==='review'&&<b aria-hidden="true">★</b>}{kind==='project'&&<b aria-hidden="true">✎</b>}
         </button>
       </span>;
     })}
@@ -52,6 +52,6 @@ export function LessonPath({subject,s,book,onLesson}:{subject:CourseSubject;s:Co
         <UnitPath subject={subject} s={s} unit={unit} onLesson={onLesson}/>
       </details>;
     })}
-    <p id={hint} className="small muted">Tap a lesson to check it in. ★ is the unit review. Finish every lesson in a unit, assessment too, to earn its belt. {plural(units.filter(u=>u.earned).length,'belt')} so far.</p>
+    <p id={hint} className="small muted">Tap a lesson to check it in. {units.some(u=>u.review)?'★ is the unit review. ':''}{units.some(u=>u.projects)?'✎ is a project lesson. ':''}Finish every lesson in a unit{units.some(u=>u.test)?', assessment too,':''} to earn its belt. {plural(units.filter(u=>u.earned).length,'belt')} so far.</p>
   </div>;
 }

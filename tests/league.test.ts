@@ -1,6 +1,6 @@
 import {test} from 'vitest';
 import assert from 'node:assert/strict';
-import {summarizeCourse,completions,unitOf} from '../src/domain/subjects/course.ts';
+import {summarizeCourse,completions,lessonsLeft,unitOf} from '../src/domain/subjects/course.ts';
 import {summarizeLeague} from '../src/domain/league.ts';
 import {validate} from '../src/domain/validate.ts';
 import {MATH,ENGLISH,NINJA} from '../src/domain/student.ts';
@@ -17,12 +17,13 @@ const league=(entries:any[],asOf:string)=>summarizeLeague(NINJA,entries,asOf)!;
 
 test('Math 5 has four units of 30, and belts count on in order',()=>{
   const s=summarizeCourse(MATH,[],'2026-11-10');
-  assert.deepEqual(s.units.map(u=>[u.first,u.last,u.belt]),[[1,30,0],[31,60,1],[61,90,2],[91,120,3]]);
+  const math5=s.units.filter(u=>u.book===5);
+  assert.deepEqual(math5.map(u=>[u.first,u.last,u.belt]),[[1,30,0],[31,60,1],[61,90,2],[91,120,3]]);
   // Lessons 1–68 were done before check-ins: two belts earned, with no day to show.
-  assert.deepEqual(s.units.map(u=>u.earned),[true,true,false,false]);
+  assert.deepEqual(math5.map(u=>u.earned),[true,true,false,false]);
   assert.equal(s.units[0]!.earnedOn,null);
   assert.equal(s.unit!.number,3);assert.equal(s.unit!.finished,8);
-  assert.equal(unitOf(s,5,90)!.number,3);assert.equal(unitOf(s,6,1),null);
+  assert.equal(unitOf(s,5,90)!.number,3);assert.equal(unitOf(s,6,1)!.belt,4);
   assert.equal(MATH.books[0]!.titles![75],'Time Review');
 });
 test('a belt is earned when every lesson in the unit is finished, on the last one’s day',()=>{
@@ -66,6 +67,18 @@ test('a week off is a Monday from the league start through this week',()=>{
   assert.throws(()=>validate({subject:'weekoff',week:'2026-11-02'}),/Choose a week/);
   assert.throws(()=>validate({subject:'weekoff',week:'2099-01-05'}),/Choose a week/);
 });
-test('English has no units yet, so it shows as one book',()=>{
-  assert.deepEqual(summarizeCourse(ENGLISH,[],'2026-11-10').units,[]);
+test('Math 6 belts pick up where Math 5 ends, blue through black',()=>{
+  const s=summarizeCourse(MATH,[],'2026-11-10');
+  assert.deepEqual(s.units.filter(u=>u.book===6).map(u=>[u.first,u.review,u.belt]),[[1,28,4],[31,58,5],[61,88,6],[91,118,7]]);
+  assert.equal(MATH.books[1]!.titles![44],'Arches National Park Puzzles');
+});
+test('English 5 has six units with project lessons and no assessment; finishing the unit earns the belt',()=>{
+  const s=summarizeCourse(ENGLISH,[],'2026-11-10');
+  assert.deepEqual(s.units.map(u=>[u.first,u.last]),[[1,20],[21,43],[44,63],[64,83],[84,103],[104,120]]);
+  assert.deepEqual(s.units.map(u=>u.earned),[true,false,false,false,false,false]);
+  assert.equal(s.unit!.number,2);assert.equal(s.unit!.finished,2);
+  assert.equal(lessonsLeft(s.unit!,s.books[5]!.progress),21);
+  assert.equal(ENGLISH.books[0]!.titles![31],'Project Lesson');assert.equal(ENGLISH.books[0]!.titles![30],'');
+  const done=Array.from({length:21},(_,i)=>english(23+i,'2026-11-20'));
+  assert.equal(summarizeCourse(ENGLISH,done,'2026-11-21').units[1]!.earned,true);
 });

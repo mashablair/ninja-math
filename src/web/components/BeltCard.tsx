@@ -1,5 +1,5 @@
 import {useId} from 'react';
-import {percentOf,type CourseSummary} from '../../domain/subjects/course.ts';
+import {lessonsLeft,percentOf,type CourseSummary} from '../../domain/subjects/course.ts';
 import type {CourseSubject} from '../../domain/subjects/types.ts';
 import {pretty} from '../../domain/dates.ts';
 import {cx} from '../format.ts';
@@ -10,8 +10,7 @@ import {BeltIcon} from './Icons.tsx';
 // The unit she's in and the belt it earns, then every belt in the subject: earned ones in color.
 export function BeltCard({subject,s}:{subject:CourseSubject;s:CourseSummary}) {
   const title=useId(), unit=s.unit!, book=s.books[s.active]!, belt=beltName(unit.belt);
-  // Lessons still to do before the assessment; at zero the assessment is next.
-  const left=book.progress.slice(unit.first-1,unit.test[0]!-1).filter(p=>p<1).length;
+  const left=lessonsLeft(unit,book.progress);
   return <section className="card belt-card" aria-labelledby={title}>
     <span className="label">Unit {unit.number} of {bookLabel(subject,unit.book)}</span>
     <div className="belt-goal"><BeltIcon belt={unit.belt} size={72}/><h3 id={title}>{belt}</h3></div>

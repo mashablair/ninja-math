@@ -82,7 +82,7 @@ test('math: the path, the unit assessment, and the league',async({page})=>{
   await expect(page.locator('.unit.current')).toContainText('11 of 30');
 
   await button(page,'For Mom').click();
-  await expect(page.getByRole('row').filter({hasText:'Unit 3'})).toContainText('In progress');
+  await expect(page.getByRole('row').filter({hasText:'Math 5 · Unit 3'})).toContainText('In progress');
   const week=page.getByRole('row').filter({hasText:'(this week)'});
   await expect(week).toContainText('3 of 10');
   await week.getByRole('button',{name:/^Mark off the week of/}).click();
@@ -100,6 +100,8 @@ test('english: finishing lesson 23 earns a sticker',async({page})=>{
   await save(page);
   await celebrated(page,'Lesson 23 is done!');
   await expect(button(page,'English 5, lesson 23, finished')).toBeVisible();
+  await expect(page.locator('.unit.current')).toContainText('Unit 2');
+  await expect(page.locator('.belt-card')).toContainText('20 more lessons to your yellow belt');
 });
 
 // The music and sports tests each share one page, so they log in once: the login allows 8 tries a minute per address.

@@ -1,5 +1,5 @@
 import type {LeagueSummary} from '../domain/league.ts';
-import {percentOf,unitOf,type CourseSummary} from '../domain/subjects/course.ts';
+import {lessonsLeft,percentOf,unitOf,type CourseSummary} from '../domain/subjects/course.ts';
 import {earnedBadges,type PracticeSummary} from '../domain/subjects/practice.ts';
 import type {PracticeEntry} from '../domain/events.ts';
 import type {CourseSubject,PracticeSubject} from '../domain/subjects/types.ts';
@@ -21,7 +21,7 @@ export function courseCelebration(subject:CourseSubject,book:number,lessons:numb
     :reached?leagueCopy.goalReached(next)
     :many&&!bookDone?'Loose ends, all tied up. Beautiful work!'
     :copy.celebrateMessage({finished:now.finished,book,bookDone,percentBefore:percentOf(was),percentAfter});
-  const left=unit?now.progress.slice(unit.first-1,unit.test[0]!-1).filter(p=>p<1).length:0;
+  const left=unit?lessonsLeft(unit,now.progress):0;
   return {
     sticker:bookDone||belt?'★':many?lessons.length:lessons[0]!,
     title:bookDone?`${bookLabel(subject,book)} complete!`:belt?`${beltName(unit.belt)}!`:many?`${lessons.length} lessons checked off!`:`Lesson ${lessons[0]} is done!`,

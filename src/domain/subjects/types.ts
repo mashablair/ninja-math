@@ -1,8 +1,8 @@
 import type {Day} from '../dates.ts';
 
 export interface Item {id:string;name:string}
-// A unit of lessons first–last. It may have a review lesson, and it ends with an assessment; finishing all of it earns its belt.
-export interface Unit {first:number;last:number;review?:number;test:number[]}
+// A unit of lessons first–last. It may have a review lesson, project lessons, and an assessment at the end; finishing all of it earns its belt.
+export interface Unit {first:number;last:number;review?:number;test?:number[];projects?:number[]}
 export interface Book {
   id:number;
   lessons:number;

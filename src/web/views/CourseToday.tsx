@@ -61,7 +61,7 @@ export function CourseToday({subject,chosenBook,onBook}:{subject:CourseSubject;c
   const started=!allDone&&active.progress[s.nextLesson-1]!>0;
   const pct=percentOf(active), mine=entriesOf(subject,entries) as CourseEntry[];
   const path=s.units.some(u=>u.book===book), unit=s.unit, name=allDone?'':lessonTitle(subject,s.active,s.nextLesson);
-  const kind=!unit||allDone?'':unit.test.includes(s.nextLesson)?'test':unit.review===s.nextLesson?'review':'';
+  const kind=!unit||allDone?'':unit.test?.includes(s.nextLesson)?'test':unit.review===s.nextLesson?'review':unit.projects?.includes(s.nextLesson)?'project':'';
   const tapLesson=(n:number)=>{
     if(!ready) return;
     const progress=shown.progress[n-1]!;
@@ -74,8 +74,8 @@ export function CourseToday({subject,chosenBook,onBook}:{subject:CourseSubject;c
       <section className="card checkin-card" aria-labelledby={ids.next}>
         <div className="section-top"><span className="label">Today’s lesson{unit&&!allDone?` · Unit ${unit.number}`:''}</span><span className="today-state">{s.loggedToday?'Checked in today ✓':''}</span></div>
         <div className="lesson-title"><h2 id={ids.next}>{allDone?'You did it!':`Lesson ${s.nextLesson}`}</h2><span className="lesson-book">{allDone?copy.allDone.book:bookLabel(subject,s.active)}</span></div>
-        {name&&<p className="lesson-name">{name}</p>}
-        {kind&&<p className={cx('lesson-kind',kind)}>{kind==='test'?`Belt test! The assessment finishes your ${beltName(unit!.belt).toLowerCase()}.`:'Unit review: a fun one before the assessment.'}</p>}
+        {name&&kind!=='project'&&<p className="lesson-name">{name}</p>}
+        {kind&&<p className={cx('lesson-kind',kind)}>{kind==='test'?`Belt test! The assessment finishes your ${beltName(unit!.belt).toLowerCase()}.`:kind==='review'?'Unit review: a fun one before the assessment.':'Project day! Make something great.'}</p>}
         <p className="muted next-subtitle">{subtitle}</p>
         <div className="checkin-actions">
           <button className="action complete" disabled={!ready} onClick={()=>ui.openCourse(subject,{status:'complete'})}>

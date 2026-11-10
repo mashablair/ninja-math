@@ -81,6 +81,8 @@ function unitProgress(subject:CourseSubject,books:Record<number,BookProgress>):U
     return {...unit,book:config.id,number:i+1,belt:belt++,finished:range.filter(p=>p===1).length,lessons:range.length,earned,earnedOn:earned?dates.at(-1)??null:null};
   }));
 }
+// Lessons still to do before the unit's assessment, or in the whole unit when it has none. At zero, the assessment is next.
+export const lessonsLeft=(unit:Unit,progress:readonly number[])=>progress.slice(unit.first-1,(unit.test?.[0]??unit.last+1)-1).filter(p=>p<1).length;
 export const unitOf=(summary:CourseSummary,book:number,lesson:number)=>summary.units.find(u=>u.book===book&&lesson>=u.first&&lesson<=u.last)??null;
 
 // Each lesson finished, on the day it was finished. Starting progress and lessons waiting for confirmation don't count,
