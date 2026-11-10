@@ -1,5 +1,5 @@
 import {z} from 'zod';
-import {today,isRealDay,longDate} from './dates.ts';
+import {today,isRealDay,longDate,mondayOf} from './dates.ts';
 import {ValidationError} from './errors.ts';
 import {NINJA,subjectOf} from './student.ts';
 import {FEELS,OTHER,type CourseSubject,type PracticeSubject,type Student} from './subjects/types.ts';
@@ -85,6 +85,15 @@ function goalSchema(student:Student) {
   }).transform(entry=>({v:ENTRY_VERSION,...entry}));
 }
 
+// A week Mom marks off for the league: a Monday from the league's first week through this one.
+function weekOffSchema(student:Student) {
+  const start=mondayOf(student.league!.start), WEEK='Choose a week from the league’s first week through this one.';
+  return z.object({
+    subject:z.literal('weekoff'),
+    week:z.string({error:WEEK}).refine(value=>isRealDay(value)&&mondayOf(value)===value&&value>=start&&value<=mondayOf(today(new Date(),student.timezone)),{error:WEEK})
+  }).transform(entry=>({v:ENTRY_VERSION,...entry}));
+}
+
 function songSchema(subject:PracticeSubject) {
   const field=subject.itemField, ids=subject.items.map(item=>item.id) as [string,...string[]], max=subject.songs!.maxTitle;
   const TITLE=`Choose a song name up to ${max} characters.`;
@@ -101,6 +110,7 @@ export function schemaFor(input:Record<string,unknown>,student:Student=NINJA) {
     const owner=student.subjects.find((s):s is PracticeSubject=>s.type==='practice'&&!!s.songs);
     return owner?songSchema(owner):null;
   }
+  if(input.subject==='weekoff') return student.league?weekOffSchema(student):null;
   if(input.subject==='goal') return student.subjects.some(s=>s.type==='practice'&&s.goal)?goalSchema(student):null;
   const subject=subjectOf(student,input.subject);
   if(!subject) return null;
