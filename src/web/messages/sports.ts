@@ -24,7 +24,6 @@ const CELEBRATE=[
 
 export const sports:PracticeCopy={
   mascot:'/ninja-running.webp',
-  mascotFor:item=>`/ninja-${item}.webp`,
   dailyMessage(day,{loggedToday}){
     if(loggedToday) return 'You moved today. Way to go!';
     if(isWeekend(day)) return 'Weekend adventure time, if you feel like it!';
@@ -39,19 +38,15 @@ export const sports:PracticeCopy={
     empty:['Your sports story starts here.','Log a workout, a run, a ride, or a day on the water. This is your space.']
   },
   today:{
-    label:'Today’s sports',heading:'What did you do today?',days:'Days with sports',
+    label:'Today’s sports',heading:'What did you do today?',
     intro:'Tap a sport to save it. Every bit of moving counts.',
-    empty:'Nothing saved for today yet. Add what you did when you’re ready.',
     done:'Moved today ✓',saved:'Saved today'
   },
-  actions:{practice:['I moved!','Save what you did']},
-  calendar:{heading:'My sports calendar',intro:'Each square is a day. More minutes make it darker. Tap a square to see what you did.'},
   form:{
     title:(_kind,editing)=>editing?'Make your sports note just right.':'How did you move today?',
     itemLegend:'What did you do?',
     focus:{label:'Anything to remember?',placeholder:'e.g. 2 miles, leg day, saw a turtle'},
     defaultMinutes:30,
-    defaultItem:'last',
     about:{gym:'your gym time',running:'your run','mountain-biking':'your ride',snorkeling:'your snorkeling','water-skiing':'your water skiing',other:'what you did'},
     picked:name=>`Already picked, because you tapped ${name}. You can still switch.`
   },

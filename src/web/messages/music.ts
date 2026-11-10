@@ -26,7 +26,7 @@ const CELEBRATE=[
 ];
 
 export const music:PracticeCopy={
-  mascot:'/unicorn-music.svg',
+  mascot:'/ninja-saxophone.webp',
   dailyMessage(day,{loggedToday}){
     if(loggedToday) return 'You made music today. That’s awesome!';
     if(isWeekend(day)) return 'Weekend music is a bonus. No pressure at all!';
@@ -42,17 +42,44 @@ export const music:PracticeCopy={
     empty:['Your music starts here.','Log a practice or a lesson with your teacher. This is your space.']
   },
   today:{
-    label:'Today’s music',heading:'What did you play?',days:'Days with music',
-    intro:'Piano, flute, or saxophone. Save a practice, and a lesson with your teacher when you have one.',
-    empty:'Nothing saved for today yet. Add a practice when you’re ready.'
+    label:'Today’s music',heading:'What did you play today?',
+    intro:'Tap an instrument to save a practice. Every few minutes count.',
+    done:'Played today ✓',saved:'Saved today'
   },
-  actions:{practice:['I practiced','Save what you played'],lesson:['Lesson with my teacher','Save that too']},
-  calendar:{heading:'My practice calendar',intro:'Each square is a day. More minutes make it darker. Tap a square to see what you played.'},
+  lesson:['Lesson with my teacher','Save a lesson'],
   form:{
     title:(kind,editing)=>editing?'Make your music note just right.':kind==='lesson'?'A lesson with your teacher.':'What did you play?',
     itemLegend:'Instrument',
     focus:{label:'Anything else you worked on',placeholder:'Anything else? e.g. scales, long tones'},
-    defaultMinutes:20,
-    defaultItem:'unlogged'
+    defaultMinutes:10,
+    about:{piano:'your piano practice',flute:'your flute practice',saxophone:'your saxophone practice'},
+    picked:name=>`Already picked, because you tapped ${name}. You can still switch.`
+  },
+  feel:{tough:'Tough',good:'Good',amazing:'Amazing!'},
+  month:{
+    intro:'Tap a day to see what you played. ♪ marks a lesson with your teacher.',
+    empty:month=>`Nothing saved in ${month} yet. Your ninjas will show up here.`,
+    nothing:day=>`Nothing saved on ${day}. Rest days are part of it too.`
+  },
+  thisWeek:{empty:'Nothing saved this week yet. A few minutes of playing counts!'},
+  goal:{
+    none:'Want a goal? Pick how many days you’d like to play each week.',set:'Set a goal',
+    title:'My weekly goal',question:'How many days do you want to play each week?',
+    hint:'It’s your goal. Change it any time, or have no goal at all.',
+    progress:(days,goal)=>days?`${days} of ${goal} days. ${music.goal!.left(goal-days)}`:`Any day you play counts toward ${goal}.`,
+    left:days=>`${days} more ${days===1?'day':'days'} to go.`,
+    reached:'You reached your goal this week!',
+    celebrate:'You reached your goal this week! That’s your own goal, and you did it.'
+  },
+  badges:{
+    intro:earned=>earned?`${earned} ${earned===1?'badge':'badges'} so far. Each one is something you really did.`:'Badges show up as you play. Here’s what you can earn.',
+    first:{
+      piano:['Piano ninja','First piano day','Play the piano to earn this'],
+      flute:['Flute ninja','First flute day','Play the flute to earn this'],
+      saxophone:['Sax ninja','First saxophone day','Play the saxophone to earn this']
+    },
+    mix:['Triple play','All 3 instruments in one week','Play all 3 instruments in one week'],
+    all:['Whole band','Played all three instruments','Play all three instruments'],
+    month:name=>[name,`Made music in ${name}`]
   }
 };

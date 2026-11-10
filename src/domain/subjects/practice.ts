@@ -1,10 +1,9 @@
 import {today,mondayOf,monthOf,type Day} from '../dates.ts';
 import type {Entry} from '../events.ts';
-import {activityCalendar,weekMinutes,type Calendar} from '../calendar.ts';
 import {OTHER,type PracticeSubject} from './types.ts';
 
 export interface PracticeSummary {
-  entries:Entry[];loggedToday:boolean;minutes:Record<string,number>;lessons:Entry[];monday:Day;
+  entries:Entry[];loggedToday:boolean;lessons:Entry[];monday:Day;
   // Monday through today: only what she did, never zeros.
   week:Totals;
   goal:number|null;
@@ -17,7 +16,6 @@ export function summarizePractice(subject:PracticeSubject,entries:readonly Entry
   return {
     entries:ordered,
     loggedToday:ordered.some(e=>e.date===asOf),
-    minutes:weekMinutes(ordered,subject.items,subject.itemField,asOf),
     lessons:ordered.filter(e=>e.kind==='lesson'),
     monday:mondayOf(asOf),
     week:totals(subject,ordered,mondayOf(asOf),asOf),
@@ -57,7 +55,7 @@ export function goalOf(subject:PracticeSubject,entries:readonly Entry[]):number|
 
 // Badges are worked out from what she logged, never stored, so each one is something she really did.
 // first: the first time for each activity; mix: several different activities in one Monday–Sunday week;
-// all: every activity on the list at least once; month: any month with moving in it.
+// all: every activity on the list at least once; month: any month with something logged in it.
 export type BadgeKind='first'|'mix'|'all'|'month';
 export interface Badge {id:string;kind:BadgeKind;item?:string;month?:string;earned:Day|null}
 export function badgesFor(subject:PracticeSubject,logs:readonly Entry[]):Badge[] {
@@ -83,9 +81,6 @@ export function badgesFor(subject:PracticeSubject,logs:readonly Entry[]):Badge[]
   ];
 }
 export const earnedBadges=(badges:readonly Badge[])=>badges.filter(badge=>badge.earned);
-export function practiceCalendar(subject:PracticeSubject,entries:readonly Entry[],item:string,asOf:Day=today()):Calendar {
-  return activityCalendar(logsOf(subject,entries).filter(e=>e[subject.itemField]===item),asOf);
-}
 
 // Songs are append-only 'song' entries layered over the starting songs; archiving saves the song again.
 export interface BankSong {id:string;item:string;title:string;archived:boolean;seq:number}

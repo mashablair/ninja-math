@@ -4,14 +4,14 @@ import type {PracticeEntry} from '../../domain/events.ts';
 import {earnedBadges,totals} from '../../domain/subjects/practice.ts';
 import {OTHER,type PracticeSubject} from '../../domain/subjects/types.ts';
 import {duration,monthName,plural,shortDay} from '../format.ts';
-import {STUDENT,choicesOf,entryLabel,itemName,itemNoun,practiceCopy} from '../subjects.ts';
-import {usePractice,useToday} from '../state/data.tsx';
+import {STUDENT,choicesOf,entryLabel,itemName,itemNoun,kindLabel,practiceCopy,practiceText} from '../subjects.ts';
+import {usePractice,useSongBank,useToday} from '../state/data.tsx';
 
 const dash=(minutes:number)=>minutes?duration(minutes):'–';
 
-// For Mom, month layout: the week, her goal, totals by month, and a log that prints on its own.
-export function MovePlan({subject}:{subject:PracticeSubject}) {
-  const s=usePractice(subject), day=useToday(), copy=practiceCopy(subject), ids={months:useId(),log:useId(),pick:useId()};
+// For Mom: the week, her goal, totals by month, and a log that prints on its own.
+export function PracticePlan({subject}:{subject:PracticeSubject}) {
+  const s=usePractice(subject), bank=useSongBank(), day=useToday(), copy=practiceCopy(subject), ids={months:useId(),log:useId(),pick:useId()};
   const months:string[]=[];
   for(let m=monthOf(day);m>=monthOf(subject.start);m=addMonths(m,-1)) months.push(m);
   const [month,setMonth]=useState(months[0]!);
@@ -19,6 +19,7 @@ export function MovePlan({subject}:{subject:PracticeSubject}) {
   const now=sumOf(monthOf(day)), week=s.week, goal=s.goal;
   const minutesFor=(sum:ReturnType<typeof sumOf>,item:string)=>sum.activities.filter(a=>a.item===item).reduce((n,a)=>n+a.minutes,0);
   const log=(s.entries as PracticeEntry[]).filter(e=>monthOf(e.date)===month), logSum=sumOf(month);
+  const lessonsIn=(m:string)=>s.lessons.filter(e=>monthOf(e.date!)===m).length;
   const names=(list:typeof week.activities)=>list.map(a=>a.name||itemName(subject,a.item)).join(', ');
   return <>
     <div className="stat-cards">
@@ -38,14 +39,15 @@ export function MovePlan({subject}:{subject:PracticeSubject}) {
     <section className="card table-card" aria-labelledby={ids.months}>
       <h2 id={ids.months}>Month by month</h2>
       <div className="table-scroll"><table>
-        <thead><tr><th>Month</th><th>Days</th>{choicesOf(subject).map(item=><th key={item.id}>{item.name}</th>)}<th>Total</th></tr></thead>
+        <thead><tr><th>Month</th><th>Days</th>{choicesOf(subject).map(item=><th key={item.id}>{item.name}</th>)}{subject.lessons&&<th>Lessons</th>}<th>Total</th></tr></thead>
         <tbody>{months.map(m=>{const sum=sumOf(m);return <tr key={m}>
           <th scope="row">{monthName(m)}</th><td>{sum.days||'–'}</td>
           {choicesOf(subject).map(item=><td key={item.id}>{dash(minutesFor(sum,item.id))}</td>)}
+          {subject.lessons&&<td>{lessonsIn(m)||'–'}</td>}
           <td><strong>{dash(sum.minutes)}</strong></td>
         </tr>;})}</tbody>
       </table></div>
-      <p className="goal-foot">A new row starts each month. Days counts any day with at least one {itemNoun(subject)}.</p>
+      <p className="goal-foot">A new row starts each month. Days counts any day with at least one {itemNoun(subject)}.{subject.lessons?` Teacher lessons count as ${subject.lessons.minutes} minutes.`:''}</p>
     </section>
     <section className="card table-card print-log" aria-labelledby={ids.log}>
       <div className="section-top">
@@ -60,14 +62,14 @@ export function MovePlan({subject}:{subject:PracticeSubject}) {
         <thead><tr><th>Date</th><th>Activity</th><th>Time</th>{subject.feel&&<th>Felt</th>}<th>Notes</th></tr></thead>
         <tbody>{log.map(entry=><tr key={entry.id}>
           <td>{shortDay(entry.date)}</td>
-          <td>{entryLabel(subject,entry)}{entry[subject.itemField]===OTHER?<span className="muted"> ({itemName(subject,OTHER).toLowerCase()})</span>:null}</td>
+          <td>{entryLabel(subject,entry)}{entry[subject.itemField]===OTHER?<span className="muted"> ({itemName(subject,OTHER).toLowerCase()})</span>:null}{subject.lessons&&entry.kind==='lesson'?<span className="muted"> · {kindLabel(entry).toLowerCase()}</span>:null}</td>
           <td>{duration(entry.minutes)}</td>
           {subject.feel&&<td>{entry.feel?copy.feel![entry.feel]:'–'}</td>}
-          <td className="note-cell">{entry.focus}</td>
+          <td className="note-cell">{practiceText(entry,bank)}</td>
         </tr>)}</tbody>
         <tfoot><tr><th scope="row">Total</th><td>{plural(logSum.days,'day')}</td><td>{duration(logSum.minutes)}</td><td colSpan={subject.feel?2:1}></td></tr></tfoot>
       </table></div>:<p className="muted">Nothing logged in {monthName(month,false)}.</p>}
-      <p className="goal-foot no-print">Print gives you just this table on a clean page, handy for a PE record or portfolio.</p>
+      <p className="goal-foot no-print">Print gives you just this table on a clean page, handy for a school record or portfolio.</p>
     </section>
   </>;
 }

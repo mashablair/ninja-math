@@ -11,7 +11,6 @@ export function weekday(day:Day):boolean { const n=noon(day).getUTCDay(); return
 export function nextSchoolDay(day:Day,include=false):Day { let d=include?day:addDays(day,1); while(!weekday(d)) d=addDays(d,1); return d; }
 export function finishDate(start:Day,slots:number):Day { let day=nextSchoolDay(start,true); for(let i=1;i<slots;i++) day=nextSchoolDay(day); return day; }
 export const mondayOf=(day:Day):Day=>addDays(day,-((noon(day).getUTCDay()+6)%7));
-export const sundayOf=(day:Day):Day=>addDays(day,-noon(day).getUTCDay());
 export function isRealDay(value:unknown):value is Day {
   return typeof value==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(value)&&!Number.isNaN(Date.parse(value))&&noon(value).toISOString().slice(0,10)===value;
 }
