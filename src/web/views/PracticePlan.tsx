@@ -1,7 +1,7 @@
 import {useId,useState} from 'react';
 import {addMonths,monthOf} from '../../domain/dates.ts';
 import type {PracticeEntry} from '../../domain/events.ts';
-import {earnedBadges,totals} from '../../domain/subjects/practice.ts';
+import {earnedBadges,firstMonth,totals} from '../../domain/subjects/practice.ts';
 import {OTHER,type PracticeSubject} from '../../domain/subjects/types.ts';
 import {duration,monthName,plural,shortDay} from '../format.ts';
 import {STUDENT,choicesOf,entryLabel,itemName,itemNoun,kindLabel,practiceCopy,practiceText} from '../subjects.ts';
@@ -13,7 +13,7 @@ const dash=(minutes:number)=>minutes?duration(minutes):'–';
 export function PracticePlan({subject}:{subject:PracticeSubject}) {
   const s=usePractice(subject), bank=useSongBank(), day=useToday(), copy=practiceCopy(subject), ids={months:useId(),log:useId(),pick:useId()};
   const months:string[]=[];
-  for(let m=monthOf(day);m>=monthOf(subject.start);m=addMonths(m,-1)) months.push(m);
+  for(let m=monthOf(day);m>=firstMonth(subject,s.entries);m=addMonths(m,-1)) months.push(m);
   const [month,setMonth]=useState(months[0]!);
   const sumOf=(m:string)=>totals(subject,s.entries,m+'-01',m+'-31');
   const now=sumOf(monthOf(day)), week=s.week, goal=s.goal;

@@ -2,7 +2,7 @@ import {test} from 'vitest';
 import assert from 'node:assert/strict';
 import {validate} from '../src/domain/validate.ts';
 import {summarizeCourse} from '../src/domain/subjects/course.ts';
-import {summarizePractice,totals,badgesFor,earnedBadges,goalOf} from '../src/domain/subjects/practice.ts';
+import {summarizePractice,firstMonth,totals,badgesFor,earnedBadges,goalOf} from '../src/domain/subjects/practice.ts';
 import {monthCalendar} from '../src/domain/calendar.ts';
 import {materialize} from '../src/domain/events.ts';
 import {MATH,MUSIC,SPORTS} from '../src/domain/student.ts';
@@ -32,7 +32,11 @@ test('sports validation keeps the log small and specific',()=>{
   assert.throws(()=>validate(entry('gym',MAX_SPORT_MINUTES+1)),/minutes/);
   assert.throws(()=>validate(entry('gym',12.5)),/minutes/);
   assert.throws(()=>validate({...entry('gym',30),focus:'x'.repeat(201)}),/under 200/);
-  assert.throws(()=>validate({...entry('gym',30),date:'2026-10-01'}),/./);
+  assert.throws(()=>validate({...entry('gym',30),date:'2099-10-01'}),/up to today/);
+  // She can backfill something from before Sports started; the calendar reaches back to it.
+  assert.equal(validate({...entry('gym',30),date:'2026-10-20'}).date,'2026-10-20');
+  assert.equal(firstMonth(SPORTS,[entry('gym',30,'2026-11-04'),entry('gym',30,'2026-10-20')]),'2026-10');
+  assert.equal(firstMonth(SPORTS,[]),'2026-11');
 });
 
 test('something else needs a name and keeps it; listed sports drop any name',()=>{

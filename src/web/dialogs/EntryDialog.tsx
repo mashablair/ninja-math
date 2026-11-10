@@ -48,7 +48,7 @@ function Shell({title,titleId,context,error,saving,onSubmit,onDone,plain,footer,
     {footer}
   </form>;
 }
-const DateField=({start,value,onChange}:{start:string;value:string;onChange(value:string):void})=>{
+const DateField=({start,value,onChange}:{start?:string;value:string;onChange(value:string):void})=>{
   const day=useToday();
   return <label>Date<input type="date" required min={start} max={day} value={value} onChange={e=>onChange(e.target.value)}/></label>;
 };
@@ -129,7 +129,7 @@ function PracticeForm({editing,titleId,onDone}:{editing:PracticeEditing;titleId:
   });
   const title=existing?copy.form.title(kind,true):teacher?copy.form.title('lesson',false):`Nice! Tell me about ${copy.form.about?.[item]??'it'}.`;
   const when=<p className="form-date muted">
-    {changingDate?<DateField start={subject.start} value={date} onChange={setDate}/>
+    {changingDate?<DateField value={date} onChange={setDate}/>
       :<>{date===day?`Today, ${longDay(day)}`:longDay(date)} · <button type="button" className="link-button" onClick={()=>setChangingDate(true)}>change date</button></>}
   </p>;
   return <Shell title={title} titleId={titleId} plain footer={when} error={error} saving={saving} onSubmit={save} onDone={onDone}>

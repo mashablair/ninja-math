@@ -152,7 +152,10 @@ main{max-width:1240px;margin:0 auto;padding:0 28px}
 .month-arrows{display:flex;gap:8px;flex:none}
 .month-arrows button{width:46px;height:46px;border-radius:50%;border:1px solid var(--line);background:var(--surface);font-size:1.6rem;font-weight:800;line-height:1;color:var(--ink)}
 .month-arrows button:disabled{opacity:.35;cursor:default;transform:none}
-.filter-chips{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 4px}
+.filters{margin-top:10px}
+.filters summary{display:inline-flex;align-items:center;gap:6px;min-height:44px;cursor:pointer;font-weight:800;color:var(--accent-text)}
+.filters summary span{color:var(--ink)}
+.filter-chips{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 4px}
 .filter-chips button{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border:1.5px solid var(--line);border-radius:999px;background:var(--surface);font-size:.95rem;font-weight:800;color:var(--ink)}
 .filter-chips button img{width:28px;height:28px;margin-left:-8px;border-radius:50%;background:color-mix(in srgb,var(--a) 30%,#fff)}
 .filter-chips button[aria-pressed=true]{background:var(--accent);border-color:transparent;color:var(--on-accent)}

@@ -46,6 +46,10 @@ export function totals(subject:PracticeSubject,logs:readonly Entry[],from:Day,to
   return {days:new Set(within.map(e=>e.date)).size,minutes:activities.reduce((sum,a)=>sum+a.minutes,0),activities};
 }
 
+// Backfilled logs can come before the subject's start, so calendars reach back to the earliest one.
+export const firstMonth=(subject:PracticeSubject,logs:readonly Entry[])=>
+  logs.filter(e=>e.subject===subject.id).map(e=>monthOf(e.date!)).reduce((first,m)=>m<first?m:first,monthOf(subject.start));
+
 export const goalId=(subject:PracticeSubject)=>`goal-${subject.id}`;
 export function goalOf(subject:PracticeSubject,entries:readonly Entry[]):number|null {
   if(!subject.goal) return null;

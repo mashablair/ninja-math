@@ -2,7 +2,7 @@ import {useId,useMemo,useState} from 'react';
 import {addMonths,monthOf,type Day} from '../../domain/dates.ts';
 import {monthCalendar,type MonthDay} from '../../domain/calendar.ts';
 import type {Entry,PracticeEntry} from '../../domain/events.ts';
-import {totals} from '../../domain/subjects/practice.ts';
+import {firstMonth,totals} from '../../domain/subjects/practice.ts';
 import type {PracticeSubject} from '../../domain/subjects/types.ts';
 import {cx,duration,longDay,monthName,plural} from '../format.ts';
 import {choicesOf,entryDetail,entryLabel,itemImage,itemNoun,itemOf,practiceCopy} from '../subjects.ts';
@@ -28,16 +28,19 @@ export function MonthCalendar({subject,entries,day}:{subject:PracticeSubject;ent
         <p className="muted">{sum.days?`${plural(sum.days,'day')} of ${copy.week.noun} · ${duration(sum.minutes)} · ${plural(sum.activities.length,`different ${itemNoun(subject)}`)}`:copy.month!.empty(monthName(month,false))}</p>
       </div>
       <div className="month-arrows">
-        <button type="button" aria-label="Previous month" disabled={month<=monthOf(subject.start)} onClick={()=>go(-1)}>‹</button>
+        <button type="button" aria-label="Previous month" disabled={month<=firstMonth(subject,entries)} onClick={()=>go(-1)}>‹</button>
         <button type="button" aria-label="Next month" disabled={month>=monthOf(day)} onClick={()=>go(1)}>›</button>
       </div>
     </div>
-    <div className="filter-chips" role="group" aria-label={`Show ${subject.labels.items}`}>
+    <details className="filters">
+      <summary>Filters{only&&<span> · {choicesOf(subject).find(item=>item.id===only)?.name}</span>}</summary>
+      <div className="filter-chips" role="group" aria-label={`Show ${subject.labels.items}`}>
       <button type="button" aria-pressed={only===null} onClick={()=>{setOnly(null);setPicked(null);}}>All</button>
       {choicesOf(subject).map(item=><button key={item.id} type="button" aria-pressed={only===item.id} onClick={()=>{setOnly(item.id);setPicked(null);}}>
         <img src={itemImage(subject,item.id)} alt="" width="28" height="28"/>{item.name}
       </button>)}
-    </div>
+      </div>
+    </details>
     <div className="month-grid">
       {WEEKDAYS.map(d=><span key={d} className="month-weekday" aria-hidden="true">{d}</span>)}
       {weeks.flat().map((cell,i)=>{

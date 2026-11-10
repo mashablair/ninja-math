@@ -214,6 +214,8 @@ test.describe('sports',()=>{
     await expect(page.locator('.new-badge')).toContainText('Something new');
     await celebrated(page,'Swimming saved!');
     await expect(page.locator('.week-activities')).toContainText('Swimming1 hr');
+    await expect(page.getByRole('group',{name:'Show sports'})).toBeHidden();
+    await page.getByText('Filters',{exact:true}).click();
     await page.getByRole('group',{name:'Show sports'}).getByRole('button',{name:'Something else'}).click();
     await expect(calendarDay(page,'Swimming 1 hr')).toBeVisible();
   });

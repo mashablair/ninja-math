@@ -10,9 +10,10 @@ export const ID=/^[a-zA-Z0-9-]{8,80}$/;
 const NOTE='Keep notes under 500 characters.';
 const note=z.string({error:NOTE}).max(500,{error:NOTE}).transform(s=>s.trim());
 
-function day(start:string,timeZone:string) {
-  const error=`Choose a real date from ${longDate(start)} through today.`;
-  return z.string({error}).refine(value=>isRealDay(value)&&value>=start&&value<=today(new Date(),timeZone),{error});
+// Music and Sports can be backfilled from any earlier day (start is null); courses begin on their start date.
+function day(start:string|null,timeZone:string) {
+  const error=start?`Choose a real date from ${longDate(start)} through today.`:'Choose a real date up to today.';
+  return z.string({error}).refine(value=>isRealDay(value)&&(!start||value>=start)&&value<=today(new Date(),timeZone),{error});
 }
 
 function courseSchema(subject:CourseSubject,timeZone:string) {
@@ -54,7 +55,7 @@ function practiceSchema(subject:PracticeSubject,timeZone:string) {
   const isOther=(entry:Record<string,unknown>)=>!!other&&entry[field]===OTHER;
   return z.object({
     subject:z.literal(subject.id),
-    date:day(subject.start,timeZone),
+    date:day(null,timeZone),
     [field]:z.enum(ids,{error:`Choose one of the ${subject.labels.items}.`}),
     ...(subject.lessons?{kind:z.enum(['practice','lesson'],{error:'Choose practice or a lesson with your teacher.'})}:{}),
     minutes:z.number({error:MINUTES}).int({error:MINUTES}).min(1,{error:MINUTES}).max(subject.maxMinutes,{error:MINUTES}),
