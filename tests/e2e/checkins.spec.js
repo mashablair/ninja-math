@@ -28,6 +28,7 @@ async function celebrated(page,title){
   await expect(page.getByRole('heading',{name:title})).toBeVisible();
   await button(page,'Yay!').click();
 }
+const tile=(page,name)=>page.getByRole('group',{name:'What did you do today?'}).getByRole('button',{name,exact:true});
 const calendarDay=(page,text)=>page.getByRole('button',{name:new RegExp(`^[A-Z][a-z]+day, [A-Z][a-z]+ \\d+: ${text}$`)});
 
 test('looking is public, saving needs the login',async({page})=>{
@@ -116,26 +117,83 @@ test('music: a new song is added to the bank',async({page})=>{
   await celebrated(page,'Flute practice saved!');
 });
 
-test('sports: log, edit, and remove a run',async({page})=>{
-  await open(page,'Sports');
-  await page.getByRole('button',{name:/I moved!/}).click();
-  await logIn(page);
-  await pick(page,'radio','Running');
-  await page.getByRole('spinbutton',{name:'Minutes'}).fill('25');
-  await page.getByRole('textbox',{name:/Anything to remember/}).fill('Two laps');
-  await save(page);
-  await celebrated(page,'Running saved!');
-  await expect(calendarDay(page,'25 min of running')).toHaveClass(/\bl2\b/);
-  await expect(page.locator('.music-minutes:visible')).toContainText('Running25 min');
+// The sports tests share one page, so they log in once: the login allows 8 tries a minute per address.
+test.describe('sports',()=>{
+  let page;
+  test.beforeAll(async({browser})=>{page=await browser.newPage();});
+  test.afterAll(async()=>{await page.close();});
 
-  await page.locator('.music-row').filter({hasText:'Running'}).getByRole('button',{name:'Edit'}).click();
-  await page.getByRole('spinbutton',{name:'Minutes'}).fill('50');
-  await save(page);
-  await expect(calendarDay(page,'50 min of running')).toHaveClass(/\bl4\b/);
+  test('sports: she sets her own goal, in days',async()=>{
+    await open(page,'Sports');
+    await expect(page.getByText('Nothing saved this week yet. Any kind of moving counts!')).toBeVisible();
+    await button(page,'Set a goal').click();
+    await logIn(page);
+    await pick(page,'radio','2 days');
+    await button(page,'Save my goal').click();
+    await expect(page.locator('.goal-box')).toContainText('My goal: 2 days');
+    await expect(page.locator('.goal-box')).toContainText('Any day you move counts toward 2.');
+  });
 
-  await button(page,'Journal').click();
-  await expect(page.getByRole('article').filter({hasText:'Running · 50 min'})).toBeVisible();
-  await page.getByRole('button',{name:/^Remove check-in from/}).click();
-  await button(page,'Remove check-in').click();
-  await expect(page.getByRole('heading',{name:'Your sports story starts here.'})).toBeVisible();
+  test('sports: tap a sport, pick the minutes and a face, and earn a badge',async()=>{
+    await open(page,'Sports');
+    await tile(page,'Running').click();
+    await expect(page.getByRole('heading',{name:'Nice! Tell me about your run.'})).toBeVisible();
+    await expect(page.getByRole('radio',{name:'Running',exact:true})).toBeChecked();
+    await expect(page.getByRole('radio',{name:'30 min'})).toBeChecked();
+    await expect(page.getByRole('spinbutton',{name:'Minutes'})).toHaveCount(0);
+    await pick(page,'radio','45 min');
+    await pick(page,'radio','Amazing!');
+    await page.getByRole('textbox',{name:/Anything to remember/}).fill('Two laps');
+    await save(page);
+    await expect(page.locator('.new-badge')).toContainText('Runner');
+    await expect(page.locator('.celebrate-progress')).toContainText('1 of 2 days');
+    await celebrated(page,'Running saved!');
+    await expect(calendarDay(page,'Running 45 min')).toHaveClass(/\bmoved\b/);
+    await expect(page.locator('.saved-today')).toContainText('Amazing!');
+    await expect(page.locator('.week-activities')).toContainText('Running45 min');
+    await expect(page.locator('.badge-grid .earned').filter({hasText:'Runner'})).toBeVisible();
+    await expect(page.locator('.badge-grid .locked').filter({hasText:'Reef explorer'})).toBeVisible();
+
+    await page.getByRole('button',{name:'Edit Running'}).click();
+    await pick(page,'radio','Other');
+    await page.getByRole('spinbutton',{name:'Minutes'}).fill('50');
+    await save(page);
+    await expect(calendarDay(page,'Running 50 min')).toBeVisible();
+  });
+
+  test('sports: something else gets her own name for it',async()=>{
+    await open(page,'Sports');
+    await tile(page,'Something else').click();
+    await page.getByRole('textbox',{name:'What did you do?'}).fill('Swimming');
+    await pick(page,'radio','1 hr');
+    await save(page);
+    await expect(page.locator('.new-badge')).toContainText('Something new');
+    await celebrated(page,'Swimming saved!');
+    await expect(page.locator('.week-activities')).toContainText('Swimming1 hr');
+    await page.getByRole('group',{name:'Show sports'}).getByRole('button',{name:'Something else'}).click();
+    await expect(calendarDay(page,'Swimming 1 hr')).toBeVisible();
+  });
+
+  test('sports: for mom shows monthly totals and a printable log',async()=>{
+    await open(page,'Sports');
+    await button(page,'For Mom').click();
+    await expect(page.getByText('She set it herself. 1 of 2 so far.')).toBeVisible();
+    const log=page.locator('.print-log');
+    await expect(log.getByRole('row').filter({hasText:'Running'})).toContainText('Amazing!');
+    await expect(log.getByRole('row').filter({hasText:'Swimming'})).toContainText('1 hr');
+    await expect(log.getByRole('row').filter({hasText:'Total'})).toContainText('1 day1 hr 50 min');
+    await expect(button(page,'Print')).toBeVisible();
+  });
+
+  test('sports: remove both from the journal',async()=>{
+    await open(page,'Sports');
+    await button(page,'Journal').click();
+    await expect(page.getByRole('article').filter({hasText:'Running · 50 min'})).toContainText('Amazing!');
+    for(let i=0;i<2;i++){
+      await page.getByRole('button',{name:/^Remove check-in from/}).first().click();
+      await button(page,'Remove check-in').click();
+      await expect(button(page,'Remove check-in')).toBeHidden();
+    }
+    await expect(page.getByRole('heading',{name:'Your sports story starts here.'})).toBeVisible();
+  });
 });

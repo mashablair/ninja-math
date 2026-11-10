@@ -3,7 +3,8 @@ import type {CourseEntry,Entry,PracticeEntry} from '../../domain/events.ts';
 import type {CourseSubject,PracticeSubject,Subject} from '../../domain/subjects/types.ts';
 import {CheckIcon,StatusIcon} from '../components/Icons.tsx';
 import {SubjectTabs} from '../components/SubjectTabs.tsx';
-import {bookLabel,bookOf,courseCopy,entriesOf,itemName,itemOf,kindLabel,practiceCopy,practiceText} from '../subjects.ts';
+import {duration} from '../format.ts';
+import {bookLabel,bookOf,courseCopy,entriesOf,entryLabel,itemImage,itemOf,kindLabel,practiceCopy,practiceText} from '../subjects.ts';
 import {useData,useSongBank} from '../state/data.tsx';
 import {useUi} from '../state/ui.tsx';
 
@@ -27,12 +28,14 @@ function CourseItem({subject,entry}:{subject:CourseSubject;entry:CourseEntry}) {
   </article>;
 }
 function PracticeItem({subject,entry}:{subject:PracticeSubject;entry:PracticeEntry}) {
-  const bank=useSongBank(), text=practiceText(entry,bank), lesson=entry.kind==='lesson';
+  const bank=useSongBank(), text=practiceText(entry,bank), lesson=entry.kind==='lesson', feel=entry.feel&&practiceCopy(subject).feel?.[entry.feel];
   return <article className="history-item">
-    <span className={`history-symbol ${lesson?'lesson':'complete'}`}>{lesson?'♪':<CheckIcon size={22}/>}</span>
+    {subject.layout==='month'
+      ?<img className="history-symbol history-ninja" src={itemImage(subject,itemOf(subject,entry))} alt="" width="46" height="46"/>
+      :<span className={`history-symbol ${lesson?'lesson':'complete'}`}>{lesson?'♪':<CheckIcon size={22}/>}</span>}
     <div className="history-body">
-      <h3>{itemName(subject,itemOf(subject,entry))} · {subject.lessons?`${kindLabel(entry)} · `:''}{entry.minutes} min</h3>
-      <small>{pretty(entry.date,true)}</small>
+      <h3>{entryLabel(subject,entry)} · {subject.lessons?`${kindLabel(entry)} · `:''}{subject.layout==='month'?duration(entry.minutes):`${entry.minutes} min`}</h3>
+      <small>{pretty(entry.date,true)}{feel&&<span className={`feel-pill ${entry.feel}`}>{feel}</span>}</small>
       {text&&<p>{text}</p>}
       {entry.note&&<p>{entry.note}</p>}
     </div>

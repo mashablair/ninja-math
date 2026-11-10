@@ -10,6 +10,7 @@ import {STUDENT,bookLabel,courseCopy,itemName,itemOf,practiceCopy,practiceText} 
 import {useCourse,useData,usePractice,useSongBank,useToday} from '../state/data.tsx';
 import type {CourseCopy} from '../messages/types.ts';
 import {MinutesList} from './PracticeToday.tsx';
+import {MovePlan} from './MovePlan.tsx';
 
 function Goals({subject,s}:{subject:CourseSubject;s:CourseSummary}) {
   const tagline=courseCopy(subject).plan.taglines;
@@ -85,6 +86,9 @@ function CoursePlan({subject}:{subject:CourseSubject}) {
 }
 
 function PracticePlan({subject}:{subject:PracticeSubject}) {
+  return subject.layout==='month'?<MovePlan subject={subject}/>:<YearPlan subject={subject}/>;
+}
+function YearPlan({subject}:{subject:PracticeSubject}) {
   const s=usePractice(subject), bank=useSongBank();
   const lessons=[...s.lessons].reverse() as PracticeEntry[];
   return <>
@@ -118,8 +122,9 @@ export function Plan({subject,onSubject}:{subject:Subject;onSubject(id:string):v
   return <section>
     <div className="page-heading">
       <p className="label">For Mom</p>
-      <h1>The plan</h1>
-      <p className="muted">Dates, targets and forecasts live here, away from {STUDENT.name}’s screen.</p>
+      {subject.type==='practice'&&subject.layout==='month'
+        ?<><h1>{subject.name}</h1><p className="muted">What {STUDENT.name} did, by month, with a log you can print.</p></>
+        :<><h1>The plan</h1><p className="muted">Dates, targets and forecasts live here, away from {STUDENT.name}’s screen.</p></>}
     </div>
     <SubjectTabs subject={subject} onChange={onSubject}/>
     <div className="history-toolbar"><button className="secondary" disabled={!ready} onClick={()=>download({entries,revision},day)}>Download progress</button></div>

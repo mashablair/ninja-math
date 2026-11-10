@@ -1,5 +1,6 @@
 import type {Day} from '../../domain/dates.ts';
 import type {CourseSummary} from '../../domain/subjects/course.ts';
+import type {Feel} from '../../domain/subjects/types.ts';
 
 // Everything a subject says on screen. Kind, specific, never guilt. No streaks, no invented achievements.
 interface Copy {
@@ -30,7 +31,7 @@ export interface PracticeCopy extends Copy {
   celebrateTitle(itemName:string,kind:'practice'|'lesson'):string;
   mascotFor?(item:string):string;
   preview:{sticker:string;title:string;message:string};
-  today:{label:string;heading:string;intro:string;empty:string;days:string};
+  today:{label:string;heading:string;intro:string;empty:string;days:string;done?:string;saved?:string};
   actions:{practice:[title:string,hint:string];lesson?:[title:string,hint:string]};
   calendar:{heading:string;intro:string};
   form:{
@@ -40,5 +41,25 @@ export interface PracticeCopy extends Copy {
     defaultMinutes:number;
     // Which item a new log starts on: the first one not logged today, or the last one used.
     defaultItem:'unlogged'|'last';
+    // With minute buttons: "your run", "your ride", for "Nice! Tell me about your run."
+    about?:Record<string,string>;
+    picked?(name:string):string;
+  };
+  // The rest is for the month layout (Sports, and Music next).
+  other?:{name:string;image:string;label:string;placeholder:string};
+  feel?:Record<Feel,string>;
+  month?:{intro:string;empty(month:string):string;nothing(day:string):string};
+  thisWeek?:{empty:string};
+  goal?:{
+    none:string;set:string;title:string;question:string;hint:string;
+    progress(days:number,goal:number):string;left(days:number):string;reached:string;celebrate:string;
+  };
+  // [name, what earned it, how to earn it]. Months need no "how", since any moving earns them.
+  badges?:{
+    intro(earned:number):string;
+    first:Record<string,[name:string,detail:string,todo:string]>;
+    mix:[name:string,detail:string,todo:string];
+    all:[name:string,detail:string,todo:string];
+    month(name:string):[name:string,detail:string];
   };
 }

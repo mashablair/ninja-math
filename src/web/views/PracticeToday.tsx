@@ -7,12 +7,16 @@ import {WeekStrip} from '../components/WeekStrip.tsx';
 import {itemName,itemOf,kindLabel,practiceCopy,practiceText} from '../subjects.ts';
 import {useData,usePractice,useSongBank,useToday} from '../state/data.tsx';
 import {useUi} from '../state/ui.tsx';
+import {MonthToday} from './MonthToday.tsx';
 
 export function MinutesList({subject,minutes}:{subject:PracticeSubject;minutes:Record<string,number>}) {
   return <div className="music-minutes">{subject.items.map(item=><div key={item.id}><span>{item.name}</span><strong>{minutes[item.id]} min</strong></div>)}</div>;
 }
 
 export function PracticeToday({subject}:{subject:PracticeSubject}) {
+  return subject.layout==='month'?<MonthToday subject={subject}/>:<YearToday subject={subject}/>;
+}
+function YearToday({subject}:{subject:PracticeSubject}) {
   const {ready}=useData(), day=useToday(), s=usePractice(subject), bank=useSongBank(), ui=useUi(), copy=practiceCopy(subject);
   const ids={today:useId(),calendar:useId()}, [picked,setPicked]=useState<Picked|null>(null);
   const todays=(s.entries as PracticeEntry[]).filter(entry=>entry.date===day);
