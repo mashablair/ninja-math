@@ -22,7 +22,7 @@ function courseSchema(subject:CourseSubject,timeZone:string) {
   return z.object({
     subject:z.literal(subject.id),
     date:day(subject.start,timeZone),
-    status:z.enum(['complete','partial','skipped'],{error:CHECKIN}),
+    status:z.enum(['complete','partial','skipped','fixed'],{error:CHECKIN}),
     note,
     reason:z.string({error:NOTE}).max(100,{error:NOTE}).transform(s=>s.trim()),
     lesson:z.unknown().optional(),
@@ -33,16 +33,17 @@ function courseSchema(subject:CourseSubject,timeZone:string) {
   }).superRefine((entry,ctx)=>{
     if(entry.status==='skipped') return;
     const book=subject.books.find(b=>b.id===(entry[subject.bookField]??(books.length===1?books[0]:undefined)));
-    const lessons=book?.lessons??120;
-    if(!Number.isInteger(entry.lesson)||(entry.lesson as number)<1||(entry.lesson as number)>lessons||![0.25,0.5,0.75,1].includes(entry.progress as number)||(entry.status==='complete')!==(entry.progress===1)) ctx.addIssue({code:'custom',message:LESSON});
+    const lessons=book?.lessons??120, fixed=entry.status==='fixed';
+    // A fix-up names a lesson but no amount: the lesson was already finished.
+    if(!Number.isInteger(entry.lesson)||(entry.lesson as number)<1||(entry.lesson as number)>lessons||(!fixed&&(![0.25,0.5,0.75,1].includes(entry.progress as number)||(entry.status==='complete')!==(entry.progress===1)))) ctx.addIssue({code:'custom',message:LESSON});
   }).superRefine((entry,ctx)=>{
     const value=entry[subject.bookField]??(books.length===1?books[0]:undefined);
     if(!books.includes(value as number)) ctx.addIssue({code:'custom',message:CHECKIN});
   }).transform(entry=>{
-    const skipped=entry.status==='skipped';
-    const saved:Record<string,unknown>={v:ENTRY_VERSION,subject:subject.id,date:entry.date,status:entry.status,lesson:skipped?null:entry.lesson,progress:skipped?0:entry.progress,note:entry.note,reason:entry.reason};
+    const skipped=entry.status==='skipped', fixed=entry.status==='fixed';
+    const saved:Record<string,unknown>={v:ENTRY_VERSION,subject:subject.id,date:entry.date,status:entry.status,lesson:skipped?null:entry.lesson,progress:skipped||fixed?0:entry.progress,note:entry.note,reason:fixed?'':entry.reason};
     saved[subject.bookField]=entry[subject.bookField]??books[0];
-    if(subject.askTopic) saved.topic=skipped?'':String(entry.topic).trim();
+    if(subject.askTopic) saved.topic=skipped||fixed?'':String(entry.topic).trim();
     return saved;
   });
 }
@@ -95,6 +96,21 @@ function weekOffSchema(student:Student) {
   }).transform(entry=>({v:ENTRY_VERSION,...entry}));
 }
 
+// Mom's check on a finished lesson: every answer is right. The day is when she checked it.
+function checkedSchema(student:Student) {
+  const courses=student.subjects.filter((s):s is CourseSubject=>s.type==='course'), CHECK='Choose a lesson to check.';
+  return z.object({
+    subject:z.literal('checked'),
+    of:z.enum(courses.map(s=>s.id) as [string,...string[]],{error:'Choose a valid subject for this check.'}),
+    book:z.number({error:CHECK}).int({error:CHECK}),
+    lesson:z.number({error:CHECK}).int({error:CHECK}),
+    date:day(null,student.timezone)
+  }).superRefine((entry,ctx)=>{
+    const book=courses.find(s=>s.id===entry.of)!.books.find(b=>b.id===entry.book);
+    if(!book||entry.lesson<1||entry.lesson>book.lessons) ctx.addIssue({code:'custom',message:CHECK});
+  }).transform(entry=>({v:ENTRY_VERSION,...entry}));
+}
+
 function songSchema(subject:PracticeSubject) {
   const field=subject.itemField, ids=subject.items.map(item=>item.id) as [string,...string[]], max=subject.songs!.maxTitle;
   const TITLE=`Choose a song name up to ${max} characters.`;
@@ -111,6 +127,7 @@ export function schemaFor(input:Record<string,unknown>,student:Student=NINJA) {
     const owner=student.subjects.find((s):s is PracticeSubject=>s.type==='practice'&&!!s.songs);
     return owner?songSchema(owner):null;
   }
+  if(input.subject==='checked') return checkedSchema(student);
   if(input.subject==='weekoff') return student.league?weekOffSchema(student):null;
   if(input.subject==='goal') return student.subjects.some(s=>s.type==='practice'&&s.goal)?goalSchema(student):null;
   const subject=subjectOf(student,input.subject);

@@ -14,6 +14,7 @@ export interface CourseCopy extends Copy {
   celebrateMessage(progress:{finished:number;book:number;bookDone:boolean;percentBefore:number;percentAfter:number}):string;
   partialMessage():string;
   breakMessage():string;
+  fixedMessage():string;
   allDone:{book:string;subtitle:string};
   plan:{
     title:string;

@@ -8,6 +8,7 @@ import {cx,num,plural,versusTarget} from '../format.ts';
 import {STUDENT,bookLabel,courseCopy,itemName,itemOf,practiceCopy,practiceText} from '../subjects.ts';
 import {useCourse,useData,usePractice,useSongBank,useToday} from '../state/data.tsx';
 import type {CourseCopy} from '../messages/types.ts';
+import {ChecksPlan} from './ChecksPlan.tsx';
 import {PracticePlan} from './PracticePlan.tsx';
 import {LeaguePlan,UnitsTable} from './RewardsPlan.tsx';
 
@@ -74,6 +75,7 @@ function Timeline({subject,s,plan}:{subject:CourseSubject;s:CourseSummary;plan:C
 function CoursePlan({subject}:{subject:CourseSubject}) {
   const s=useCourse(subject), plan=courseCopy(subject).plan, title=useId();
   return <>
+    <ChecksPlan subject={subject} s={s}/>
     <Goals subject={subject} s={s}/>
     <section className="card timeline-card" aria-labelledby={title}>
       <div className="section-top"><h2 id={title}>{plan.title}</h2><span className="muted">1 lesson per weekday · no holiday breaks</span></div>
@@ -87,7 +89,8 @@ function CoursePlan({subject}:{subject:CourseSubject}) {
 }
 
 function download(state:object,day:Day) {
-  const baseline={date:MATH.start,math5Finished:MATH.books[0]!.baseline,english:{date:ENGLISH.start,level:5,finished:ENGLISH.books[0]!.baseline,lessons:ENGLISH.books[0]!.lessons,target:ENGLISH.books[0]!.target}};
+  const baseline={date:MATH.start,math5Finished:MATH.books[0]!.baseline,math5CheckedThrough:MATH.books[0]!.checkedThrough,
+    english:{date:ENGLISH.start,level:5,finished:ENGLISH.books[0]!.baseline,checkedThrough:ENGLISH.books[0]!.checkedThrough,lessons:ENGLISH.books[0]!.lessons,target:ENGLISH.books[0]!.target}};
   const blob=new Blob([JSON.stringify({schema:1,exportedAt:new Date().toISOString(),baseline,...state},null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob), a=document.createElement('a');
   a.href=url;a.download=`${STUDENT.id}-progress-${day}.json`;a.click();

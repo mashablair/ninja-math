@@ -4,7 +4,7 @@ import type {LeagueSummary} from './league.ts';
 import type {CourseSubject,Student} from './subjects/types.ts';
 
 // When she's slipping on her 5 lessons a week, Ninja says so, with sass she can turn off in Tweaks.
-// Never on a week Mom marked off, never once she's checked in today, and never before the league started.
+// Never on a week Mom marked off, never once she's checked in a lesson today, and never before the league started.
 export type Nudge=
   |{kind:'weekend';done:number;left:number;days:number}
   |{kind:'behind';done:number;expected:number}
@@ -16,7 +16,8 @@ const weekdaysBetween=(from:Day,to:Day)=>{let n=0;for(let d=addDays(from,1);d<to
 export function nudgeFor(student:Student,subject:CourseSubject,entries:readonly Entry[],league:LeagueSummary|null,asOf:Day=today()):Nudge|null {
   const config=student.league;
   if(!config||!league||!config.subjects.includes(subject.id)||league.week.off||asOf<config.start) return null;
-  const mine=entries.filter(e=>e.subject===subject.id&&e.date!=null&&e.date<=asOf&&e.status!=='skipped');
+  // Fixing mistakes is real work, but the plan needs new lessons, so a fix-up doesn't quiet her.
+  const mine=entries.filter(e=>e.subject===subject.id&&e.date!=null&&e.date<=asOf&&e.status!=='skipped'&&e.status!=='fixed');
   if(mine.some(e=>e.date===asOf)) return null;
   const done=league.week.lessons[subject.id]??0, goal=config.perSubject, monday=mondayOf(asOf);
   if(done>=goal) return null;

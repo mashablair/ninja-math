@@ -20,7 +20,8 @@ function useDailyMessage(subject:Subject):{text:string;sassy:boolean} {
     if(nudge) return {text:sassyMessage(nudge.kind==='lopsided'?{...nudge,other:subjectById(nudge.other)?.name??nudge.other}:nudge,
       {subject:subject.name,lesson:summarizeCourse(subject,entries,day).nextLesson,league:leagueName(league!.league),day}),sassy:true};
   }
-  const todays=entriesOf(subject,entries).filter(entry=>entry.date===day);
+  // A fix-up is real work, but today's lesson is still waiting.
+  const todays=entriesOf(subject,entries).filter(entry=>entry.date===day&&entry.status!=='fixed');
   const copy=subject.type==='course'?courseCopy(subject):practiceCopy(subject);
   return {text:copy.dailyMessage(day,{loggedToday:todays.length>0,lastStatus:todays.at(-1)?.status as string|undefined}),sassy:false};
 }

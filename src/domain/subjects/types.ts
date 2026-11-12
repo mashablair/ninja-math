@@ -11,6 +11,8 @@ export interface Book {
   target:Day;
   // Lessons that may be done but were never confirmed; they count as remaining until logged.
   needsConfirmation?:number[];
+  // Lessons 1..checkedThrough were checked by Mom before her checks were logged.
+  checkedThrough?:number;
   // The planned next lesson skips ahead of unconfirmed ones.
   plannedFrom?:number;
   // From the book's table of contents, when we have it. Without units the book shows as one sticker grid.

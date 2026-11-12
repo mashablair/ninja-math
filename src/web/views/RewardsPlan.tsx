@@ -22,11 +22,11 @@ export function UnitsTable({subject,s}:{subject:CourseSubject;s:CourseSummary}) 
         <th scope="row">{bookLabel(subject,u.book)} · Unit {u.number}</th>
         <td>{u.first}–{u.last}{u.review?` (review ${u.review})`:''}{u.projects?` (projects ${u.projects.join(', ')})`:''}</td>
         <td>{beltName(u.belt)}</td>
-        <td>{u.finished} of {u.lessons}</td>
-        <td>{u.earned?u.earnedOn?`Earned ${pretty(u.earnedOn,true)}`:'Earned before check-ins':s.unit===u?'In progress':'Coming up'}</td>
+        <td>{u.finished} of {u.lessons}{u.finished>u.checked?` (${u.finished-u.checked} to check)`:''}</td>
+        <td>{u.earned?u.earnedOn?`Earned ${pretty(u.earnedOn,true)}`:'Earned before check-ins':u.finished===u.lessons?'Waiting for your check':s.unit===u?'In progress':'Coming up'}</td>
       </tr>)}</tbody>
     </table></div>
-    <p className="goal-foot">A belt is earned when every lesson in the unit is finished{s.units.some(u=>u.test)?', including the assessment at the end':''}.</p>
+    <p className="goal-foot">A belt is earned when every lesson in the unit is finished{s.units.some(u=>u.test)?', including the assessment at the end':''}, and you’ve checked each one.</p>
   </section>;
 }
 

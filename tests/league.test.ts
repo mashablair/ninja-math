@@ -8,6 +8,7 @@ let seq=0;
 const math=(lesson:number,date:string,status='complete'):any=>({subject:'math',date,book:5,lesson,status,progress:status==='complete'?1:0.5,seq:++seq,note:'',reason:''});
 const english=(lesson:number,date:string):any=>({subject:'english',date,level:5,lesson,status:'complete',progress:1,seq:++seq,note:'',reason:''});
 const weekOff=(week:string):any=>({subject:'weekoff',week,seq:++seq});
+const checked=(lesson:number,date:string,of='math'):any=>({subject:'checked',of,book:5,lesson,date,seq:++seq});
 // n lessons of each subject from Monday on, one a day.
 function week(monday:string,mathCount:number,englishCount:number,from={math:76,english:23}):any[] {
   const day=(i:number)=>new Date(Date.parse(monday+'T12:00:00Z')+i%7*86400000).toISOString().slice(0,10);
@@ -26,10 +27,16 @@ test('Math 5 has four units of 30, and belts count on in order',()=>{
   assert.equal(unitOf(s,5,90)!.number,3);assert.equal(unitOf(s,6,1)!.belt,4);
   assert.equal(MATH.books[0]!.titles![75],'Time Review');
 });
-test('a belt is earned when every lesson in the unit is finished, on the last one’s day',()=>{
+test('a belt is earned when every lesson in the unit is finished and checked, on the last day either happened',()=>{
   const unit3=[...[69,70,71,72,73,74].map(n=>math(n,'2026-11-10')),...Array.from({length:14},(_,i)=>math(75+i,'2026-11-20'))];
-  const s=summarizeCourse(MATH,[...unit3,math(89,'2026-12-01'),math(90,'2026-12-02')],'2026-12-03');
-  assert.equal(s.units[2]!.earned,true);assert.equal(s.units[2]!.earnedOn,'2026-12-02');
+  const finished=[...unit3,math(89,'2026-12-01'),math(90,'2026-12-02')];
+  // Lessons 1–76 were checked before checks were logged; 77–90 still need Mom.
+  const waiting=summarizeCourse(MATH,finished,'2026-12-03');
+  assert.equal(waiting.units[2]!.earned,false);assert.equal(waiting.units[2]!.finished,30);assert.equal(waiting.units[2]!.checked,16);
+  const all=[...finished,...Array.from({length:14},(_,i)=>checked(77+i,'2026-12-03'))];
+  const s=summarizeCourse(MATH,all,'2026-12-03');
+  assert.equal(s.units[2]!.earned,true);assert.equal(s.units[2]!.earnedOn,'2026-12-03');
+  assert.equal(summarizeCourse(MATH,all.filter(e=>!(e.subject==='checked'&&e.lesson===90)),'2026-12-03').units[2]!.earned,false);
   // The assessment alone doesn't earn it, and neither does everything but a half-done assessment.
   assert.equal(summarizeCourse(MATH,[math(89,'2026-12-01'),math(90,'2026-12-02')],'2026-12-03').units[2]!.earned,false);
   assert.equal(summarizeCourse(MATH,[...unit3,math(89,'2026-12-01'),math(90,'2026-12-02','partial')],'2026-12-03').units[2]!.earned,false);
@@ -80,5 +87,8 @@ test('English 5 has six units with project lessons and no assessment; finishing 
   assert.equal(lessonsLeft(s.unit!,s.books[5]!.progress),21);
   assert.equal(ENGLISH.books[0]!.titles![31],'Project Lesson');assert.equal(ENGLISH.books[0]!.titles![30],'');
   const done=Array.from({length:21},(_,i)=>english(23+i,'2026-11-20'));
-  assert.equal(summarizeCourse(ENGLISH,done,'2026-11-21').units[1]!.earned,true);
+  // 23–29 were checked before checks were logged; 30–43 need Mom's check.
+  assert.equal(summarizeCourse(ENGLISH,done,'2026-11-21').units[1]!.earned,false);
+  const checks=Array.from({length:14},(_,i)=>checked(30+i,'2026-11-21','english'));
+  assert.equal(summarizeCourse(ENGLISH,[...done,...checks],'2026-11-21').units[1]!.earned,true);
 });

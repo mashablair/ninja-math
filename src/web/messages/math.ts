@@ -32,6 +32,11 @@ const PARTIAL=[
   'Every bit of practice helps.',
   'Nice work today. The rest can wait for next time.'
 ];
+const FIXED=[
+  'Fixed and saved. Mistakes are how math muscles grow!',
+  'Saved! Fixing mistakes is real ninja work.',
+  'Nice fixing! Mom will take another look.'
+];
 const BREAK=[
   'Break saved. Rest helps your brain grow.',
   'Enjoy your break, Ninja!',
@@ -65,6 +70,7 @@ export const math:CourseCopy={
   },
   partialMessage:()=>random(PARTIAL),
   breakMessage:()=>random(BREAK),
+  fixedMessage:()=>random(FIXED),
   allDone:{book:'Both books finished',subtitle:'Math 5 and Math 6 are complete. Look at everything you’ve learned.'},
   week:{done:'Math done',noun:'math',empty:'Your check-ins will show up here.'},
   journal:{
