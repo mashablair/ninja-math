@@ -91,6 +91,9 @@ main{max-width:1240px;margin:0 auto;padding:0 28px}
 .bubble{position:relative;margin:0;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:14px 18px;font-size:1.1rem;font-weight:750;box-shadow:var(--shadow)}
 .bubble::before{content:"";position:absolute;left:-9px;top:50%;width:16px;height:16px;background:var(--surface);border-left:1px solid var(--line);border-bottom:1px solid var(--line);transform:translateY(-50%) rotate(45deg)}
 .bubble.sassy,.bubble.sassy::before{background:var(--peach-bg);border-color:var(--peach-dot);color:var(--peach-ink)}
+/* Sassy mode's angry ninja stomps in with a little shake. */
+.ninja-says .angry-ninja{animation:stomp .6s ease-out}
+@keyframes stomp{0%{transform:scale(.6) rotate(-8deg)}40%{transform:scale(1.1) rotate(6deg)}60%{transform:rotate(-5deg)}80%{transform:rotate(3deg)}100%{transform:none}}
 .dashboard-grid{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:22px;align-items:start}
 .main-column,.side-column{display:flex;flex-direction:column;gap:20px;min-width:0}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:24px;padding:24px 26px;box-shadow:var(--shadow)}
@@ -604,7 +607,7 @@ dialog.celebration[open]{display:grid}
 }
 @media (prefers-reduced-motion:reduce){
   *{transition:none!important;scroll-behavior:auto!important}
-  .lesson.today,.lesson.just-earned,.path-ninja{animation:none}
+  .lesson.today,.lesson.just-earned,.path-ninja,.ninja-says .angry-ninja{animation:none}
   .confetti,.unicorn-flight{display:none}
   .celebration-card,.big-sticker{animation:none}
 }
