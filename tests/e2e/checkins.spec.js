@@ -55,7 +55,7 @@ test('math: finishing lesson 75 asks for the topic and earns a sticker',async({p
   await topic.fill('Adding fractions');
   await save(page);
   await celebrated(page,'Lesson 75 is done!');
-  await expect(button(page,'Math 5, lesson 75, finished')).toBeVisible();
+  await expect(button(page,'Math 5, lesson 75, finished, all correct')).toBeVisible();
   await button(page,'Journal').click();
   await expect(page.getByRole('article').filter({hasText:'Adding fractions'})).toBeVisible();
 });
@@ -95,6 +95,38 @@ test('math: the path, the unit assessment, and the league',async({page})=>{
   await expect(week).toContainText('In progress');
 });
 
+test('math: fixing mistakes, then Mom checks the lesson and Ninja sees the green check',async({page})=>{
+  await open(page,'Math');
+  // Lesson 90 was finished above but isn't checked yet: tapping it is a fix-up.
+  await button(page,'Math 5, lesson 90, finished').click();
+  await logIn(page);
+  await expect(page.getByRole('combobox',{name:'How did it go?'})).toHaveValue('fixed');
+  await expect(page.getByRole('textbox',{name:'What was the lesson about?'})).toHaveCount(0);
+  await save(page);
+  await expect(page.getByRole('status').filter({hasText:/fix/i})).toBeVisible();
+  await button(page,'Journal').click();
+  await expect(page.getByRole('article').filter({hasText:'Lesson 90 · Fixed mistakes'})).toBeVisible();
+
+  await button(page,'For Mom').click();
+  const card=page.locator('.checks-card');
+  await expect(card.getByRole('listitem')).toHaveCount(2);
+  await expect(card.getByRole('listitem').filter({hasText:'Lesson 90'})).toContainText('Fixed mistakes');
+  await card.getByRole('button',{name:/^Mark Math 5 · Lesson 90 .*all correct$/}).click();
+  await expect(page.getByRole('status').filter({hasText:'Lesson 90 is checked.'})).toBeVisible();
+  await expect(card.getByRole('listitem')).toHaveCount(1);
+
+  await button(page,'Today').click();
+  await celebrated(page,'Lesson 90: all correct!');
+  await expect(button(page,'Math 5, lesson 90, finished, all correct').locator('.correct-mark')).toBeVisible();
+  await expect(button(page,'Math 5, lesson 89, finished').locator('.correct-mark')).toHaveCount(0);
+
+  // Undo puts it back in Mom's list.
+  await button(page,'For Mom').click();
+  await card.locator('summary',{hasText:'Recently checked'}).click();
+  await card.getByRole('button',{name:/^Undo the check on Math 5 · Lesson 90/}).click();
+  await expect(card.getByRole('listitem').filter({hasText:'Lesson 90'}).getByRole('button',{name:/all correct$/})).toBeVisible();
+});
+
 test('english: finishing lesson 23 earns a sticker',async({page})=>{
   await open(page,'English');
   await page.getByRole('button',{name:/I finished it!/}).click();
@@ -103,7 +135,7 @@ test('english: finishing lesson 23 earns a sticker',async({page})=>{
   await expect(page.getByRole('textbox',{name:'What was the lesson about?'})).toHaveCount(0);
   await save(page);
   await celebrated(page,'Lesson 23 is done!');
-  await expect(button(page,'English 5, lesson 23, finished')).toBeVisible();
+  await expect(button(page,'English 5, lesson 23, finished, all correct')).toBeVisible();
   await expect(page.locator('.unit.current')).toContainText('Unit 2');
   await expect(page.locator('.belt-card')).toContainText('20 more lessons to your yellow belt');
 });

@@ -1,11 +1,13 @@
 import {useEffect,useId} from 'react';
-import {percentOf} from '../../domain/subjects/course.ts';
-import type {CourseEntry} from '../../domain/events.ts';
+import {addDays} from '../../domain/dates.ts';
+import {percentOf,summarizeCourse} from '../../domain/subjects/course.ts';
+import type {CheckedEntry,CourseEntry} from '../../domain/events.ts';
 import type {CourseSubject} from '../../domain/subjects/types.ts';
+import {checkedCelebration} from '../celebrations.ts';
 import {BeltCard} from '../components/BeltCard.tsx';
 import {CheckIcon,PartIcon,RestIcon} from '../components/Icons.tsx';
 import {LeagueCard} from '../components/LeagueCard.tsx';
-import {LessonPath,lessonState} from '../components/LessonPath.tsx';
+import {CorrectMark,LessonPath,lessonState} from '../components/LessonPath.tsx';
 import {WeekStrip} from '../components/WeekStrip.tsx';
 import {cx,plural} from '../format.ts';
 import {beltName,league as leagueCopy,leagueName} from '../messages/rewards.ts';
@@ -21,15 +23,31 @@ function lessonList(lessons:number[]) {
 }
 
 // Moving up a league gets its own celebration the first time she opens Math or English that week, once per device.
-function usePromotion() {
-  const league=useLeague(), ui=useUi(), last=league?.last;
+// Otherwise, lessons Mom checked in the last week that this device hasn't cheered yet get theirs. One at a time:
+// checks left over wait for the next visit.
+const CHEER_DAYS=7;
+function useCheers(subject:CourseSubject) {
+  const league=useLeague(), {entries,loaded}=useData(), day=useToday(), ui=useUi(), last=league?.last;
   useEffect(()=>{
-    if(!league||last?.result!=='up') return;
-    const key=`league-seen-${last.monday}`;
-    try{if(localStorage.getItem(key)) return;localStorage.setItem(key,'1');}catch{return;}
-    const {title,message}=leagueCopy.promoted(leagueName(league.league));
-    ui.celebrate({sticker:'↑',title,message,mascot:'/unicorn.svg',sound:'math',big:true,badge:{league:league.league,name:leagueName(league.league),detail:'Moved up!',more:0}});
-  },[league,last,ui]);
+    if(!loaded) return;
+    try{
+      if(league&&last?.result==='up'&&!localStorage.getItem(`league-seen-${last.monday}`)){
+        localStorage.setItem(`league-seen-${last.monday}`,'1');
+        const {title,message}=leagueCopy.promoted(leagueName(league.league));
+        ui.celebrate({sticker:'↑',title,message,mascot:'/unicorn.svg',sound:'math',big:true,badge:{league:league.league,name:leagueName(league.league),detail:'Moved up!',more:0}});
+        return;
+      }
+      const after=summarizeCourse(subject,entries,day);
+      const fresh=(entries.filter(e=>e.subject==='checked'&&e.of===subject.id) as CheckedEntry[])
+        .filter(e=>e.date>=addDays(day,-CHEER_DAYS)&&after.books[e.book]?.progress[e.lesson-1]===1&&!localStorage.getItem(`checked-seen-${e.id}`));
+      if(!fresh.length) return;
+      const book=fresh[0]!.book, cheered=fresh.filter(e=>e.book===book), lessons=cheered.map(e=>e.lesson).sort((a,b)=>a-b);
+      cheered.forEach(e=>localStorage.setItem(`checked-seen-${e.id}`,'1'));
+      const before=summarizeCourse(subject,entries.filter(e=>!cheered.includes(e as CheckedEntry)),day);
+      ui.earn({subject:subject.id,book,lessons});
+      ui.celebrate(checkedCelebration(subject,book,lessons,before,after));
+    }catch{return;}
+  },[subject,entries,loaded,day,league,last,ui]);
 }
 
 // Every sticker in the book, for looking back. With units it sits folded under the path.
@@ -37,12 +55,13 @@ function StickerGrid({subject,s,book,onLesson}:{subject:CourseSubject;s:ReturnTy
   const ui=useUi(), confirming=subject.books.some(b=>b.needsConfirmation?.length);
   return <>
     <div className="lesson-map">{s.books[book]!.progress.map((_,i)=>{
-      const n=i+1, {state,label}=lessonState(subject,s,book,n), name=lessonTitle(subject,book,n);
+      const n=i+1, {state,label,correct}=lessonState(subject,s,book,n), name=lessonTitle(subject,book,n);
       const earned=ui.earned?.subject===subject.id&&ui.earned.book===book&&ui.earned.lessons.includes(n);
-      return <button key={n} className={cx('lesson',state,earned&&'just-earned')} title={`Lesson ${n}${name?` · ${name}`:''}: ${label}`} aria-label={`${bookLabel(subject,book)}, lesson ${n}, ${label}`} onClick={()=>onLesson(n)}>{n}</button>;
+      return <button key={n} className={cx('lesson',state,earned&&'just-earned')} title={`Lesson ${n}${name?` · ${name}`:''}: ${label}`} aria-label={`${bookLabel(subject,book)}, lesson ${n}, ${label}`} onClick={()=>onLesson(n)}>{n}{correct&&<CorrectMark/>}</button>;
     })}</div>
     <div className="legend">
       <span><i className="done"></i>Finished</span>
+      <span><i className="done"><CorrectMark/></i>Mom checked: all correct</span>
       <span><i className="part"></i>Part done</span>
       <span><i className="today"></i>Today</span>
       {confirming&&<span><i className="check"></i>Check these</span>}
@@ -55,7 +74,7 @@ function StickerGrid({subject,s,book,onLesson}:{subject:CourseSubject;s:ReturnTy
 export function CourseToday({subject,chosenBook,onBook}:{subject:CourseSubject;chosenBook:number|undefined;onBook(book:number):void}) {
   const {entries,ready}=useData(), day=useToday(), s=useCourse(subject), league=useLeague(), ui=useUi(), copy=courseCopy(subject);
   const ids={next:useId(),map:useId()}, book=chosenBook??s.active;
-  usePromotion();
+  useCheers(subject);
   const allDone=subject.books.every(b=>s.books[b.id]!.total===b.lessons);
   const active=s.books[s.active]!, shown=s.books[book]!;
   const started=!allDone&&active.progress[s.nextLesson-1]!>0;
@@ -65,8 +84,10 @@ export function CourseToday({subject,chosenBook,onBook}:{subject:CourseSubject;c
   const tapLesson=(n:number)=>{
     if(!ready) return;
     const progress=shown.progress[n-1]!;
-    const existing=mine.findLast(e=>bookOf(subject,e)===book&&e.lesson===n&&e.date===day)??null;
-    ui.openCourse(subject,{status:progress>0&&progress<1?'partial':'complete',book,lesson:n,existing});
+    // A finished lesson still waiting for Mom's ✓ is most likely getting its mistakes fixed; the Journal still edits the finish.
+    const waiting=progress===1&&!shown.checked[n-1];
+    const existing=mine.findLast(e=>bookOf(subject,e)===book&&e.lesson===n&&e.date===day&&(!waiting||e.status==='fixed'))??null;
+    ui.openCourse(subject,{status:waiting?'fixed':progress>0&&progress<1?'partial':'complete',book,lesson:n,existing});
   };
   const subtitle=allDone?copy.allDone.subtitle:started?'Pick up where you left off. You’ve already started this one.':s.loggedToday?'You checked in today. Want to do more? You can check in again.':'Your next lesson is ready when you are.';
   return <div className="dashboard-grid">

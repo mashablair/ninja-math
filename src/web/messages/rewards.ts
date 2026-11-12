@@ -1,4 +1,5 @@
 import type {LeagueSummary} from '../../domain/league.ts';
+import {lessonsLeft,type UnitProgress} from '../../domain/subjects/course.ts';
 import {plural} from '../format.ts';
 
 // Belts follow karate order across units, Math 5 into Math 6. Leagues climb from Bronze to Unicorn.
@@ -29,6 +30,17 @@ export const league={
   goalReached:(next:string|null)=>next?`That’s 5 Math and 5 English this week! You move up to ${next} on Monday.`:'That’s 5 Math and 5 English this week! You stay at the very top.'
 };
 export const belts={
-  earned:(unit:number,belt:string)=>`You finished every lesson in Unit ${unit}. Tie on that ${belt.toLowerCase()}!`,
-  toGo:(left:number,belt:string)=>left?`${plural(left,'more lesson')} to your ${belt.toLowerCase()}`:`Assessment time! Your ${belt.toLowerCase()} is waiting.`
+  earned:(unit:number,belt:string)=>`Every lesson in Unit ${unit} is finished and checked. Tie on that ${belt.toLowerCase()}!`,
+  toGo:(left:number,belt:string)=>left?`${plural(left,'more lesson')} to your ${belt.toLowerCase()}`:`Assessment time! Your ${belt.toLowerCase()} is waiting.`,
+  // Every lesson is finished; Mom's checks are all that's left.
+  checking:(left:number,belt:string)=>`All done! Once Mom checks ${left===1?'the last lesson':`${left} lessons`}, your ${belt.toLowerCase()} is yours.`
+};
+// What a unit's belt needs next: more lessons, the assessment, or Mom's checks.
+export const beltToGo=(unit:UnitProgress,progress:readonly number[])=>
+  unit.finished===unit.lessons?belts.checking(unit.lessons-unit.checked,beltName(unit.belt)):belts.toGo(lessonsLeft(unit,progress),beltName(unit.belt));
+// Mom checked her work and every answer is right. Shown the next time she opens the subject.
+const ALL_RIGHT=['Every answer is right. That’s careful work!','Checked and correct. Ninja precision!','Mom checked it: all correct. Be proud!','All right answers. Your hard work shows!'];
+export const checks={
+  title:(lessons:number[])=>lessons.length===1?`Lesson ${lessons[0]}: all correct!`:`${lessons.length} lessons, all correct!`,
+  message:()=>ALL_RIGHT[Math.floor(Math.random()*ALL_RIGHT.length)]!
 };

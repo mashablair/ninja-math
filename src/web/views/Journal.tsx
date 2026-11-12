@@ -19,7 +19,7 @@ function CourseItem({subject,entry}:{subject:CourseSubject;entry:CourseEntry}) {
   return <article className="history-item">
     <span className={`history-symbol ${entry.status}`}><StatusIcon status={entry.status}/></span>
     <div className="history-body">
-      <h3>{entry.status==='skipped'?'A day to recharge':`${bookLabel(subject,bookOf(subject,entry))} · Lesson ${entry.lesson} · ${entry.status==='complete'?'Finished!':`${entry.progress*100}% done`}`}</h3>
+      <h3>{entry.status==='skipped'?'A day to recharge':`${bookLabel(subject,bookOf(subject,entry))} · Lesson ${entry.lesson} · ${entry.status==='complete'?'Finished!':entry.status==='fixed'?'Fixed mistakes':`${entry.progress*100}% done`}`}</h3>
       <small>{pretty(entry.date,true)}{entry.reason?` · ${entry.reason}`:''}</small>
       {entry.topic&&<p>{entry.topic}</p>}
       {entry.note&&<p>{entry.note}</p>}

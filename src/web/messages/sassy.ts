@@ -3,6 +3,8 @@ import type {Nudge} from '../../domain/nudge.ts';
 import {pickFor} from './pick.ts';
 
 // Tough love, as Mom and Ninja asked: teasing about the work, never about her. No "lazy", no scolding.
+// When she's slipping, an angry ninja says it, a different one each time she opens the subject.
+export const ANGRY_NINJAS=[1,2,3,4].map(n=>`/angry-ninja-${n}.webp`);
 const dayName=(day:Day)=>new Intl.DateTimeFormat('en-US',{weekday:'long',timeZone:'UTC'}).format(new Date(day+'T12:00:00Z'));
 const lessons=(n:number)=>`${n} ${n===1?'lesson':'lessons'}`;
 

@@ -1,15 +1,15 @@
 import type {LeagueSummary} from '../domain/league.ts';
-import {lessonsLeft,percentOf,unitOf,type CourseSummary} from '../domain/subjects/course.ts';
+import {percentOf,unitOf,type CourseSummary} from '../domain/subjects/course.ts';
 import {earnedBadges,type PracticeSummary} from '../domain/subjects/practice.ts';
 import type {PracticeEntry} from '../domain/events.ts';
 import type {CourseSubject,PracticeSubject} from '../domain/subjects/types.ts';
 import {badgeLook} from './badges.ts';
-import {beltName,belts,league as leagueCopy,leagueName} from './messages/rewards.ts';
+import {beltName,beltToGo,belts,checks,league as leagueCopy,leagueName} from './messages/rewards.ts';
 import {STUDENT,bookLabel,courseCopy,entryLabel,itemImage,itemOf,practiceCopy} from './subjects.ts';
 import type {Celebration} from './state/ui.tsx';
 
-// A lesson sticker, with the unit's belt as the progress when the book has units. Finishing the unit assessment
-// earns the belt; reaching 5 + 5 for the week says she's moving up a league.
+// A lesson sticker, with the unit's belt as the progress when the book has units. A belt waits for Mom's checks,
+// so finishing a lesson rarely earns one; reaching 5 + 5 for the week says she's moving up a league.
 export function courseCelebration(subject:CourseSubject,book:number,lessons:number[],before:CourseSummary,after:CourseSummary,
   league?:{before:LeagueSummary|null;after:LeagueSummary|null}):Celebration {
   const was=before.books[book]!, now=after.books[book]!, bookDone=now.total===now.lessons, many=lessons.length>1;
@@ -21,7 +21,6 @@ export function courseCelebration(subject:CourseSubject,book:number,lessons:numb
     :reached?leagueCopy.goalReached(next)
     :many&&!bookDone?'Loose ends, all tied up. Beautiful work!'
     :copy.celebrateMessage({finished:now.finished,book,bookDone,percentBefore:percentOf(was),percentAfter});
-  const left=unit?lessonsLeft(unit,now.progress):0;
   return {
     sticker:bookDone||belt?'★':many?lessons.length:lessons[0]!,
     title:bookDone?`${bookLabel(subject,book)} complete!`:belt?`${beltName(unit.belt)}!`:many?`${lessons.length} lessons checked off!`:`Lesson ${lessons[0]} is done!`,
@@ -29,8 +28,18 @@ export function courseCelebration(subject:CourseSubject,book:number,lessons:numb
     ...(belt&&{badge:{belt:unit.belt,name:beltName(unit.belt),detail:`Unit ${unit.number} of ${bookLabel(subject,book)}`,more:0}}),
     ...(unit&&!bookDone
       ?{label:`Unit ${unit.number} · ${beltName(unit.belt)}`,percent:Math.round(unit.finished/unit.lessons*100),value:`${unit.finished} of ${unit.lessons}`,
-        count:unit.earned?`Unit ${unit.number} complete!`:belts.toGo(left,beltName(unit.belt))}
+        count:unit.earned?`Unit ${unit.number} complete!`:beltToGo(unit,now.progress)}
       :{label:bookLabel(subject,book),percent:percentAfter,count:`${now.finished} of ${now.lessons} lessons`})
+  };
+}
+// Mom checked lessons and every answer is right. A belt those checks complete gets the big celebration.
+export function checkedCelebration(subject:CourseSubject,book:number,lessons:number[],before:CourseSummary,after:CourseSummary):Celebration {
+  const copy=courseCopy(subject);
+  const unit=after.units.find(u=>u.book===book&&u.earned&&lessons.some(n=>n>=u.first&&n<=u.last)&&!before.units.find(b=>b.book===u.book&&b.number===u.number)?.earned);
+  return {
+    sticker:'✓',title:unit?`${beltName(unit.belt)}!`:checks.title(lessons),
+    message:unit?belts.earned(unit.number,beltName(unit.belt)):checks.message(),mascot:copy.mascot,sound:subject.id,big:!!unit,
+    ...(unit&&{badge:{belt:unit.belt,name:beltName(unit.belt),detail:`Unit ${unit.number} of ${bookLabel(subject,book)}`,more:0}})
   };
 }
 // The ninja dashes across, then any badge just earned and her own weekly goal.

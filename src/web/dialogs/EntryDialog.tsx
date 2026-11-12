@@ -61,15 +61,21 @@ function CourseForm({editing,titleId,onDone}:{editing:CourseEditing;titleId:stri
   const [date,setDate]=useState(existing?.date??day), [book,setBook]=useState(startBook), [status,setStatus]=useState(editing.status);
   const [lesson,setLesson]=useState(String(startLesson)), [progress,setProgress]=useState(startProgress===1?'0.5':String(startProgress));
   const [topic,setTopic]=useState(existing?.topic??''), [reason,setReason]=useState(existing?.reason??'');
-  const skipped=status==='skipped', single=subject.books.length===1, lessons=s.books[book]?.lessons??120;
+  const skipped=status==='skipped', fixed=status==='fixed', single=subject.books.length===1, lessons=s.books[book]?.lessons??120;
   const n=Number(lesson), name=Number.isInteger(n)&&n>=1&&n<=lessons?lessonTitle(subject,book,n):'';
-  const title=existing?'Make your check-in just right.':editing.status==='skipped'?'Rest is part of learning.':editing.status==='partial'?'Little steps still count.':'Woohoo! Let’s add your sticker.';
+  const title=existing?'Make your check-in just right.':editing.status==='skipped'?'Rest is part of learning.':editing.status==='partial'?'Little steps still count.':editing.status==='fixed'?'Fixing mistakes is real ninja work.':'Woohoo! Let’s add your sticker.';
+  // A fix-up starts on the latest finished lesson still waiting for Mom's check.
+  const pickStatus=(next:typeof status)=>{
+    setStatus(next);
+    const last=s.waiting.filter(w=>w.book===book).at(-1);
+    if(next==='fixed'&&!existing&&last) setLesson(String(last.lesson));
+  };
 
   const save=submit(async()=>{
     const n=Number(lesson), copy=courseCopy(subject);
-    if(subject.askTopic&&!skipped&&!topic.trim()) throw new Error('Type what the lesson was about.');
+    if(subject.askTopic&&!skipped&&!fixed&&!topic.trim()) throw new Error('Type what the lesson was about.');
     const entry={subject:subject.id,date,[subject.bookField]:book,lesson:skipped?null:n,status,
-      progress:status==='complete'?1:status==='partial'?Number(progress):0,...(subject.askTopic?{topic:skipped?'':topic}:{}),reason,note:existing?.note??''};
+      progress:status==='complete'?1:status==='partial'?Number(progress):0,...(subject.askTopic?{topic:skipped||fixed?'':topic}:{}),reason:fixed?'':reason,note:existing?.note??''};
     const wasDone=status==='complete'&&s.books[book]?.progress[n-1]===1;
     const next=await mutate('save',editing.id,entry);
     onDone();
@@ -77,15 +83,15 @@ function CourseForm({editing,titleId,onDone}:{editing:CourseEditing;titleId:stri
     if(status==='complete'&&!wasDone&&after.books[book]?.progress[n-1]===1){
       ui.earn({subject:subject.id,book,lessons:[n]});
       ui.celebrate(courseCelebration(subject,book,[n],s,after,league));
-    }else ui.toast(status==='complete'?'Saved! Nice work.':status==='partial'?copy.partialMessage():copy.breakMessage());
+    }else ui.toast(status==='complete'?'Saved! Nice work.':status==='partial'?copy.partialMessage():fixed?copy.fixedMessage():copy.breakMessage());
   });
   return <Shell title={title} titleId={titleId} context={single?bookLabel(subject,subject.books[0]!.id):undefined} error={error} saving={saving} onSubmit={save} onDone={onDone}>
     <div className="form-row">
       <DateField start={subject.start} value={date} onChange={setDate}/>
       {!single&&<label>Book<select value={book} onChange={e=>setBook(Number(e.target.value))}>{subject.books.map(b=><option key={b.id} value={b.id}>{bookLabel(subject,b.id)}</option>)}</select></label>}
     </div>
-    <label>How did it go?<select value={status} onChange={e=>setStatus(e.target.value as typeof status)}>
-      <option value="complete">Finished a lesson ✓</option><option value="partial">Did part of it</option><option value="skipped">Took a break</option>
+    <label>How did it go?<select value={status} onChange={e=>pickStatus(e.target.value as typeof status)}>
+      <option value="complete">Finished a lesson ✓</option><option value="partial">Did part of it</option><option value="fixed">Fixed mistakes</option><option value="skipped">Took a break</option>
     </select></label>
     {!skipped&&<div className="form-row">
       <label>Lesson number<input type="number" min="1" max={lessons} step="1" required value={lesson} onChange={e=>setLesson(e.target.value)}/></label>
@@ -94,11 +100,12 @@ function CourseForm({editing,titleId,onDone}:{editing:CourseEditing;titleId:stri
       </select></label>}
     </div>}
     {!skipped&&name&&<p className="lesson-name-hint">📖 {name}</p>}
-    {subject.askTopic&&!skipped&&<label>What was the lesson about?<input maxLength={100} placeholder="e.g. Adding fractions" required value={topic} onChange={e=>setTopic(e.target.value)}/></label>}
+    {fixed&&<p className="small muted">Which lesson did you fix? Mom’s green ✓ shows up once she checks it again.</p>}
+    {subject.askTopic&&!skipped&&!fixed&&<label>What was the lesson about?<input maxLength={100} placeholder="e.g. Adding fractions" required value={topic} onChange={e=>setTopic(e.target.value)}/></label>}
     {status==='partial'&&<p className="small muted">Choose the total completed, including earlier work on this lesson.</p>}
-    <label>Anything get in the way? <span className="optional">Optional</span><select value={reason} onChange={e=>setReason(e.target.value)}>
+    {!fixed&&<label>Anything get in the way? <span className="optional">Optional</span><select value={reason} onChange={e=>setReason(e.target.value)}>
       <option value="">No reason needed</option>{['Needed help','Ran out of time','Needed a rest','Other plans','Something else'].map(r=><option key={r}>{r}</option>)}
-    </select></label>
+    </select></label>}
   </Shell>;
 }
 
