@@ -1,4 +1,5 @@
 import {rmSync} from 'node:fs';
+import {pathToFileURL} from 'node:url';
 import {spawn,spawnSync} from 'node:child_process';
 
 // Browser tests run against a throwaway local database in .wrangler/e2e, with test-only credentials.
@@ -7,7 +8,7 @@ export const E2E={port:8790,username:'e2e-tester',password:'e2e-password-not-sec
 const env={...process.env,XDG_CONFIG_HOME:process.env.XDG_CONFIG_HOME||'.wrangler/xdg',WRANGLER_LOG_PATH:'.wrangler/e2e.log',CI:'1'};
 const wrangler=['node_modules/wrangler/bin/wrangler.js'];
 
-if(import.meta.url===`file://${process.argv[1]}`){
+if(process.argv[1] && import.meta.url===pathToFileURL(process.argv[1]).href){
   rmSync(E2E.persist,{recursive:true,force:true});
   // Test the same build that deploys; wrangler then finds its generated config.
   const build=spawnSync(process.execPath,['node_modules/vite/bin/vite.js','build','--logLevel','warn'],{env,stdio:'inherit'});

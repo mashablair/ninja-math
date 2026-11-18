@@ -6,6 +6,14 @@ Ninja Math is a responsive React and TypeScript application for lesson-based cou
 
 **React · TypeScript · Vite · Hono · Cloudflare Workers · D1 · R2 · Zod · Vitest · Playwright**
 
+Built by **[Maria Blair](https://github.com/mashablair)**. The engineering focus is a warm, responsive interface backed by deterministic scheduling rules, shared validation, and recoverable event history.
+
+[Code map](#explore-the-code) · [Run locally](#run-locally) · [Verification notes](docs/PORTFOLIO_CHECK.md)
+
+![Music practice view with instrument selection, calendar, goals, and badges](docs/screenshots/music-practice.jpg)
+
+*Working local test instance with an empty practice history. No live check-ins or individual learning baselines are shown.*
+
 ## Product at a glance
 
 - **One interface, two kinds of learning.** Math and English track lessons and partial completion; Music and Sports track activities, minutes, and optional weekly goals.
